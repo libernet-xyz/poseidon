@@ -15,10 +15,6 @@ impl poseidon::Config<Scalar, 3, 2, 1> for BlsConfig<3, 2, 1> {
         56
     }
 
-    fn num_total_rounds() -> usize {
-        64
-    }
-
     fn sbox(x: Scalar) -> Scalar {
         sbox5(x)
     }
@@ -47,10 +43,6 @@ impl poseidon::Config<Scalar, 4, 3, 1> for BlsConfig<4, 3, 1> {
 
     fn num_partial_rounds() -> usize {
         56
-    }
-
-    fn num_total_rounds() -> usize {
-        64
     }
 
     fn sbox(x: Scalar) -> Scalar {

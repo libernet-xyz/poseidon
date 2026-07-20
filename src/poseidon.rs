@@ -11,7 +11,9 @@ pub trait Config<F: PrimeField, const T: usize, const R: usize, const C: usize> 
     fn num_partial_rounds() -> usize;
 
     /// Returns the total number of rounds.
-    fn num_total_rounds() -> usize;
+    fn num_total_rounds() -> usize {
+        Self::num_full_rounds() * 2 + Self::num_partial_rounds()
+    }
 
     /// Applies an optimal S-box for this field.
     ///
@@ -54,7 +56,7 @@ pub fn permutation<
 >(
     mut state: [F; T],
 ) -> [F; T] {
-    debug_assert_eq!(T, R + C);
+    const { assert!(T == R + C) };
 
     let num_full_rounds = Cfg::num_full_rounds();
     let num_partial_rounds = Cfg::num_partial_rounds();
@@ -110,7 +112,7 @@ pub fn hash<
 ) -> [F; T] {
     assert!(!inputs.is_empty());
     let mut state = [F::ZERO; T];
-    for chunk in inputs.chunks(T - 1) {
+    for chunk in inputs.chunks(T - C) {
         for i in 0..chunk.len() {
             state[i] += chunk[i];
         }
