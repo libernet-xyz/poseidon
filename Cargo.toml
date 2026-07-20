@@ -1,0 +1,20 @@
+[package]
+name = "starkom-poseidon"
+version = "1.0.0"
+description = "Starkom's implementation of the Poseidon algebraic hash."
+license = "Apache-2.0"
+repository = "https://github.com/libernet-xyz/poseidon.git"
+readme = "README.md"
+edition = "2024"
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[dependencies]
+starkom-bluesky = { version = "3.2.0", optional = true }
+starkom-ff = "2.3.0"
+
+[features]
+default = ["bluesky"]
+bls12_381 = []
+bluesky = ["starkom-bluesky"]
