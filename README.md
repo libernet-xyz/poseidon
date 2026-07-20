@@ -8,6 +8,9 @@
 
 This is Starkom's implementation of the [Poseidon algebraic hash](https://eprint.iacr.org/2019/458).
 
+Note that this crate uses version 1 of the permutation. For version 2 see the
+[`starkom-poseidon2`](https://crates.io/crates/starkom-poseidon2) crate.
+
 The implementation is generic and works on any prime field.
 
 Configurations for the BLS12-381 and BlueSky prime fields are provided; they support T=3 (R=2, C=1)
