@@ -19,18 +19,18 @@ and T=4 (R=3, C=1).
 
 ## Usage
 
-The following example functions instantiate Poseidon2 with T=3 and T=4 respectively, squeezing a
-single element from the output.
+The following example functions instantiate Poseidon with T=3 and T=4 respectively, squeezing a
+single element from the output. Both use a single element for capacity.
 
 ```rs
 use starkom_bluesky::Scalar;
 use starkom_poseidon;
 
 fn hash_t3(inputs: &[Scalar]) -> Scalar {
-    starkom_poseidon::hash::<starkom_poseidon::bluesky::BlueSkyConfig3, Scalar, 3>(inputs)[0]
+    starkom_poseidon::hash::<starkom_poseidon::bluesky::BlueSkyConfig3, Scalar, 3, 2, 1>(inputs)[0]
 }
 
 fn hash_t4(inputs: &[Scalar]) -> Scalar {
-    starkom_poseidon::hash::<starkom_poseidon::bluesky::BlueSkyConfig4, Scalar, 4>(inputs)[0]
+    starkom_poseidon::hash::<starkom_poseidon::bluesky::BlueSkyConfig4, Scalar, 4, 3, 1>(inputs)[0]
 }
 ```
