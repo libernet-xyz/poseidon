@@ -29,11 +29,11 @@ single element from the output. Both use a single element for capacity.
 use starkom_bluesky::Scalar;
 use starkom_poseidon;
 
-fn hash_t3(inputs: &[Scalar]) -> Scalar {
+fn hash_t3(inputs: impl IntoIterator<Item = Scalar>) -> Scalar {
     starkom_poseidon::hash::<starkom_poseidon::bluesky::BlueSkyConfig3, Scalar, 3, 2, 1>(inputs)[0]
 }
 
-fn hash_t4(inputs: &[Scalar]) -> Scalar {
+fn hash_t4(inputs: impl IntoIterator<Item = Scalar>) -> Scalar {
     starkom_poseidon::hash::<starkom_poseidon::bluesky::BlueSkyConfig4, Scalar, 4, 3, 1>(inputs)[0]
 }
 ```
