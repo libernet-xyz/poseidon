@@ -80,19 +80,19 @@ mod tests {
         s.parse().unwrap()
     }
 
-    fn hash_t3(inputs: &[Scalar]) -> [Scalar; 2] {
+    fn hash_t3(inputs: impl IntoIterator<Item = Scalar>) -> [Scalar; 2] {
         poseidon::hash::<BlsConfig3, Scalar, 3, 2, 1>(inputs)
     }
 
-    fn hash_t3_0(inputs: &[Scalar]) -> Scalar {
+    fn hash_t3_0(inputs: impl IntoIterator<Item = Scalar>) -> Scalar {
         poseidon::hash0::<BlsConfig3, Scalar, 3, 2, 1>(inputs)
     }
 
-    fn hash_t4(inputs: &[Scalar]) -> [Scalar; 3] {
+    fn hash_t4(inputs: impl IntoIterator<Item = Scalar>) -> [Scalar; 3] {
         poseidon::hash::<BlsConfig4, Scalar, 4, 3, 1>(inputs)
     }
 
-    fn hash_t4_0(inputs: &[Scalar]) -> Scalar {
+    fn hash_t4_0(inputs: impl IntoIterator<Item = Scalar>) -> Scalar {
         poseidon::hash0::<BlsConfig4, Scalar, 4, 3, 1>(inputs)
     }
 
@@ -133,14 +133,14 @@ mod tests {
     #[test]
     fn test_hash_t3_1() {
         assert_eq!(
-            hash_t3(&[Scalar::from_const(42)]),
+            hash_t3([Scalar::from_const(42)]),
             [
                 parse_scalar("0x23cb77dbdf16c9f51569c9fe0aa06fbf21c54ac8f606896a14fb74e6c48af04c"),
                 parse_scalar("0x5e3fabe504ab4da42267751948d02d5a0b79f23a86816b81ab481ab270ce6ccd"),
             ]
         );
         assert_eq!(
-            hash_t3_0(&[Scalar::from_const(42)]),
+            hash_t3_0([Scalar::from_const(42)]),
             parse_scalar("0x23cb77dbdf16c9f51569c9fe0aa06fbf21c54ac8f606896a14fb74e6c48af04c")
         );
     }
@@ -148,14 +148,14 @@ mod tests {
     #[test]
     fn test_hash_t3_2() {
         assert_eq!(
-            hash_t3(&[Scalar::from_const(1), Scalar::from_const(2)]),
+            hash_t3([Scalar::from_const(1), Scalar::from_const(2)]),
             [
                 parse_scalar("0x7384612d0bb2ae1a7567ccde6ea63a0249dc451c7317a49c48b8a091e71ca335"),
                 parse_scalar("0x52f2dd26c3a79aed9f7469200728bd01eb05f4eebd109031ffad98d4cdab813c"),
             ]
         );
         assert_eq!(
-            hash_t3_0(&[Scalar::from_const(1), Scalar::from_const(2)]),
+            hash_t3_0([Scalar::from_const(1), Scalar::from_const(2)]),
             parse_scalar("0x7384612d0bb2ae1a7567ccde6ea63a0249dc451c7317a49c48b8a091e71ca335")
         );
     }
@@ -163,7 +163,7 @@ mod tests {
     #[test]
     fn test_hash_t3_3() {
         assert_eq!(
-            hash_t3(&[
+            hash_t3([
                 Scalar::from_const(3),
                 Scalar::from_const(4),
                 Scalar::from_const(5),
@@ -174,7 +174,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t3_0(&[
+            hash_t3_0([
                 Scalar::from_const(3),
                 Scalar::from_const(4),
                 Scalar::from_const(5),
@@ -186,7 +186,7 @@ mod tests {
     #[test]
     fn test_hash_t3_4() {
         assert_eq!(
-            hash_t3(&[
+            hash_t3([
                 Scalar::from_const(6),
                 Scalar::from_const(7),
                 Scalar::from_const(8),
@@ -198,7 +198,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t3_0(&[
+            hash_t3_0([
                 Scalar::from_const(6),
                 Scalar::from_const(7),
                 Scalar::from_const(8),
@@ -211,7 +211,7 @@ mod tests {
     #[test]
     fn test_hash_t3_5() {
         assert_eq!(
-            hash_t3(&[
+            hash_t3([
                 Scalar::from_const(10),
                 Scalar::from_const(11),
                 Scalar::from_const(12),
@@ -224,7 +224,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t3_0(&[
+            hash_t3_0([
                 Scalar::from_const(10),
                 Scalar::from_const(11),
                 Scalar::from_const(12),
@@ -238,7 +238,7 @@ mod tests {
     #[test]
     fn test_hash_t4_1() {
         assert_eq!(
-            hash_t4(&[Scalar::from_const(42)]),
+            hash_t4([Scalar::from_const(42)]),
             [
                 parse_scalar("0x0531b2fa3c2aa794859d54c409ac6bf33a19981275bff625c5eeb8d1cc8d123c"),
                 parse_scalar("0x4de146bfef1a920bfda9018b1a05cdc7f38d49c51c66dca6d7ac0eadf450d7a1"),
@@ -246,7 +246,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t4_0(&[Scalar::from_const(42)]),
+            hash_t4_0([Scalar::from_const(42)]),
             parse_scalar("0x0531b2fa3c2aa794859d54c409ac6bf33a19981275bff625c5eeb8d1cc8d123c")
         );
     }
@@ -254,7 +254,7 @@ mod tests {
     #[test]
     fn test_hash_t4_2() {
         assert_eq!(
-            hash_t4(&[Scalar::from_const(1), Scalar::from_const(2)]),
+            hash_t4([Scalar::from_const(1), Scalar::from_const(2)]),
             [
                 parse_scalar("0x520651bc5804254d3306d30c7e3242e00f527bb7f39aedb7f828e346299bd91c"),
                 parse_scalar("0x66978e6d726f9a4d5a9645e57906b4393f17297840b93ccba7547e4f46664cdb"),
@@ -262,7 +262,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t4_0(&[Scalar::from_const(1), Scalar::from_const(2)]),
+            hash_t4_0([Scalar::from_const(1), Scalar::from_const(2)]),
             parse_scalar("0x520651bc5804254d3306d30c7e3242e00f527bb7f39aedb7f828e346299bd91c")
         );
     }
@@ -270,7 +270,7 @@ mod tests {
     #[test]
     fn test_hash_t4_3() {
         assert_eq!(
-            hash_t4(&[
+            hash_t4([
                 Scalar::from_const(3),
                 Scalar::from_const(4),
                 Scalar::from_const(5),
@@ -282,7 +282,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t4_0(&[
+            hash_t4_0([
                 Scalar::from_const(3),
                 Scalar::from_const(4),
                 Scalar::from_const(5),
@@ -294,7 +294,7 @@ mod tests {
     #[test]
     fn test_hash_t4_4() {
         assert_eq!(
-            hash_t4(&[
+            hash_t4([
                 Scalar::from_const(6),
                 Scalar::from_const(7),
                 Scalar::from_const(8),
@@ -307,7 +307,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t4_0(&[
+            hash_t4_0([
                 Scalar::from_const(6),
                 Scalar::from_const(7),
                 Scalar::from_const(8),
@@ -320,7 +320,7 @@ mod tests {
     #[test]
     fn test_hash_t4_5() {
         assert_eq!(
-            hash_t4(&[
+            hash_t4([
                 Scalar::from_const(10),
                 Scalar::from_const(11),
                 Scalar::from_const(12),
@@ -334,7 +334,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t4_0(&[
+            hash_t4_0([
                 Scalar::from_const(10),
                 Scalar::from_const(11),
                 Scalar::from_const(12),

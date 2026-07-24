@@ -77,19 +77,19 @@ mod tests {
     use super::*;
     use starkom_bluesky::{from_const, parse_scalar};
 
-    fn hash_t3(inputs: &[Scalar]) -> [Scalar; 2] {
+    fn hash_t3(inputs: impl IntoIterator<Item = Scalar>) -> [Scalar; 2] {
         poseidon::hash::<BlueSkyConfig3, Scalar, 3, 2, 1>(inputs)
     }
 
-    fn hash_t3_0(inputs: &[Scalar]) -> Scalar {
+    fn hash_t3_0(inputs: impl IntoIterator<Item = Scalar>) -> Scalar {
         poseidon::hash0::<BlueSkyConfig3, Scalar, 3, 2, 1>(inputs)
     }
 
-    fn hash_t4(inputs: &[Scalar]) -> [Scalar; 3] {
+    fn hash_t4(inputs: impl IntoIterator<Item = Scalar>) -> [Scalar; 3] {
         poseidon::hash::<BlueSkyConfig4, Scalar, 4, 3, 1>(inputs)
     }
 
-    fn hash_t4_0(inputs: &[Scalar]) -> Scalar {
+    fn hash_t4_0(inputs: impl IntoIterator<Item = Scalar>) -> Scalar {
         poseidon::hash0::<BlueSkyConfig4, Scalar, 4, 3, 1>(inputs)
     }
 
@@ -130,14 +130,14 @@ mod tests {
     #[test]
     fn test_hash_t3_1() {
         assert_eq!(
-            hash_t3(&[from_const(42)]),
+            hash_t3([from_const(42)]),
             [
                 parse_scalar("0x73952c443e4710be4a4c01e20046008b477f0d6fef5d87409cdebc4cdff3490c"),
                 parse_scalar("0x05bf595cdacac4f9eba8679b69dcde4eeeca6db242005bf6b923fde28ea88a46"),
             ]
         );
         assert_eq!(
-            hash_t3_0(&[from_const(42)]),
+            hash_t3_0([from_const(42)]),
             parse_scalar("0x73952c443e4710be4a4c01e20046008b477f0d6fef5d87409cdebc4cdff3490c")
         );
     }
@@ -145,14 +145,14 @@ mod tests {
     #[test]
     fn test_hash_t3_2() {
         assert_eq!(
-            hash_t3(&[from_const(1), from_const(2)]),
+            hash_t3([from_const(1), from_const(2)]),
             [
                 parse_scalar("0x28935bd3eba75f7b2d4f62babbd4e907b1ffcc28f73d1cae33654441a8a84023"),
                 parse_scalar("0x339d0e485d8fdfb8c3391182d457fa3e73f043f566af1463ab05e57045122519"),
             ]
         );
         assert_eq!(
-            hash_t3_0(&[from_const(1), from_const(2)]),
+            hash_t3_0([from_const(1), from_const(2)]),
             parse_scalar("0x28935bd3eba75f7b2d4f62babbd4e907b1ffcc28f73d1cae33654441a8a84023")
         );
     }
@@ -160,14 +160,14 @@ mod tests {
     #[test]
     fn test_hash_t3_3() {
         assert_eq!(
-            hash_t3(&[from_const(3), from_const(4), from_const(5)]),
+            hash_t3([from_const(3), from_const(4), from_const(5)]),
             [
                 parse_scalar("0x2bfc323795d99f44817eaa143a7db00103ff1eae1bd67ee3ab3f5a1006c7695d"),
                 parse_scalar("0x5e7468521c84b23259b813d193017a2b3c7813ce82e94ce4cc74a8c527db0923"),
             ]
         );
         assert_eq!(
-            hash_t3_0(&[from_const(3), from_const(4), from_const(5)]),
+            hash_t3_0([from_const(3), from_const(4), from_const(5)]),
             parse_scalar("0x2bfc323795d99f44817eaa143a7db00103ff1eae1bd67ee3ab3f5a1006c7695d")
         );
     }
@@ -175,14 +175,14 @@ mod tests {
     #[test]
     fn test_hash_t3_4() {
         assert_eq!(
-            hash_t3(&[from_const(6), from_const(7), from_const(8), from_const(9)]),
+            hash_t3([from_const(6), from_const(7), from_const(8), from_const(9)]),
             [
                 parse_scalar("0x06ea9f66eddb8f036b0d6201dcf6a8c610b8aca9371e2bfc7fbd1deb1e5bb158"),
                 parse_scalar("0x0bc4c477fdeee23bf2f139b12c2ea927d145f298e6204255cbad8461af9150c6"),
             ]
         );
         assert_eq!(
-            hash_t3_0(&[from_const(6), from_const(7), from_const(8), from_const(9)]),
+            hash_t3_0([from_const(6), from_const(7), from_const(8), from_const(9)]),
             parse_scalar("0x06ea9f66eddb8f036b0d6201dcf6a8c610b8aca9371e2bfc7fbd1deb1e5bb158")
         );
     }
@@ -190,7 +190,7 @@ mod tests {
     #[test]
     fn test_hash_t3_5() {
         assert_eq!(
-            hash_t3(&[
+            hash_t3([
                 from_const(10),
                 from_const(11),
                 from_const(12),
@@ -203,7 +203,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t3_0(&[
+            hash_t3_0([
                 from_const(10),
                 from_const(11),
                 from_const(12),
@@ -217,7 +217,7 @@ mod tests {
     #[test]
     fn test_hash_t4_1() {
         assert_eq!(
-            hash_t4(&[from_const(42)]),
+            hash_t4([from_const(42)]),
             [
                 parse_scalar("0x2fdb574b84cca8f2c657ea588d8812bafbba305b7a9933728753de0fcf104c40"),
                 parse_scalar("0x732f901b286e0f3575ab52e19494406c38f3db3e06169143f4c0369b3ba58ed9"),
@@ -225,7 +225,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t4_0(&[from_const(42)]),
+            hash_t4_0([from_const(42)]),
             parse_scalar("0x2fdb574b84cca8f2c657ea588d8812bafbba305b7a9933728753de0fcf104c40")
         );
     }
@@ -233,7 +233,7 @@ mod tests {
     #[test]
     fn test_hash_t4_2() {
         assert_eq!(
-            hash_t4(&[from_const(1), from_const(2)]),
+            hash_t4([from_const(1), from_const(2)]),
             [
                 parse_scalar("0x33eaaa53f69ea75566e04bcb9318f965d5e74b68663bb4a09adfeeae27c752f4"),
                 parse_scalar("0x292ad2994473be89dbfec5185888d85924bfa0f64b3be556609bbde3bad4360c"),
@@ -241,7 +241,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t4_0(&[from_const(1), from_const(2)]),
+            hash_t4_0([from_const(1), from_const(2)]),
             parse_scalar("0x33eaaa53f69ea75566e04bcb9318f965d5e74b68663bb4a09adfeeae27c752f4")
         );
     }
@@ -249,7 +249,7 @@ mod tests {
     #[test]
     fn test_hash_t4_3() {
         assert_eq!(
-            hash_t4(&[from_const(3), from_const(4), from_const(5)]),
+            hash_t4([from_const(3), from_const(4), from_const(5)]),
             [
                 parse_scalar("0x5220b264d93b85d22b4eb5a19c53ebfd08e1702e00dc76de14603165663006ea"),
                 parse_scalar("0x664ca128f4f6f225f282a671b522c267389f30f01d858757a1f029941510d8ec"),
@@ -257,7 +257,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t4_0(&[from_const(3), from_const(4), from_const(5)]),
+            hash_t4_0([from_const(3), from_const(4), from_const(5)]),
             parse_scalar("0x5220b264d93b85d22b4eb5a19c53ebfd08e1702e00dc76de14603165663006ea")
         );
     }
@@ -265,7 +265,7 @@ mod tests {
     #[test]
     fn test_hash_t4_4() {
         assert_eq!(
-            hash_t4(&[from_const(6), from_const(7), from_const(8), from_const(9)]),
+            hash_t4([from_const(6), from_const(7), from_const(8), from_const(9)]),
             [
                 parse_scalar("0x6cef40d837aeb6183356cf40d9818bc0ee109c557b17bffd80ab2905e4e2292f"),
                 parse_scalar("0x688cf6e7f2aba6c399bc3253ce3827f7a003f8170fe679cbcc2b37e9ba65211e"),
@@ -273,7 +273,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t4_0(&[from_const(6), from_const(7), from_const(8), from_const(9)]),
+            hash_t4_0([from_const(6), from_const(7), from_const(8), from_const(9)]),
             parse_scalar("0x6cef40d837aeb6183356cf40d9818bc0ee109c557b17bffd80ab2905e4e2292f")
         );
     }
@@ -281,7 +281,7 @@ mod tests {
     #[test]
     fn test_hash_t4_5() {
         assert_eq!(
-            hash_t4(&[
+            hash_t4([
                 from_const(10),
                 from_const(11),
                 from_const(12),
@@ -295,7 +295,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t4_0(&[
+            hash_t4_0([
                 from_const(10),
                 from_const(11),
                 from_const(12),
