@@ -2,8 +2,8 @@ use starkom_ff::PrimeField;
 
 /// Poseidon instance configuration trait.
 ///
-/// `R` is the absorption rate and `C` is the capacity; the state size `T` must be equal to `R+C`.
-pub trait Config<F: PrimeField, const T: usize, const R: usize, const C: usize> {
+/// `T` is the state vector size.
+pub trait Config<F: PrimeField, const T: usize> {
     /// Returns the number of full rounds on each side.
     fn num_full_rounds() -> usize;
 
@@ -47,17 +47,7 @@ fn mds<F: PrimeField, const T: usize>(matrix: &[F], state: [F; T]) -> [F; T] {
 }
 
 /// Runs the Poseidon permutation.
-pub fn permutation<
-    Cfg: Config<F, T, R, C>,
-    F: PrimeField,
-    const T: usize,
-    const R: usize,
-    const C: usize,
->(
-    mut state: [F; T],
-) -> [F; T] {
-    const { assert!(T == R + C) };
-
+pub fn permutation<Cfg: Config<F, T>, F: PrimeField, const T: usize>(mut state: [F; T]) -> [F; T] {
     let num_full_rounds = Cfg::num_full_rounds();
     let num_partial_rounds = Cfg::num_partial_rounds();
     let num_total_rounds = Cfg::num_total_rounds();
@@ -100,16 +90,13 @@ pub fn permutation<
 /// Generic Poseidon implementation over the prime field `F` with state size `T`, absoprtion rate
 /// `R`, and capacity `C`.
 ///
+/// `T` must be equal to `R+C`.
+///
 /// `inputs` must not be empty.
-pub fn hash<
-    Cfg: Config<F, T, R, C>,
-    F: PrimeField,
-    const T: usize,
-    const R: usize,
-    const C: usize,
->(
+pub fn hash<Cfg: Config<F, T>, F: PrimeField, const T: usize, const R: usize, const C: usize>(
     inputs: impl IntoIterator<Item = F>,
 ) -> [F; R] {
+    const { assert!(T == R + C) };
     let mut state = [F::ZERO; T];
     let mut inputs = inputs.into_iter().peekable();
     assert!(inputs.peek().is_some(), "cannot hash an empty sequence");
@@ -120,19 +107,13 @@ pub fn hash<
                 None => break,
             }
         }
-        state = permutation::<Cfg, F, T, R, C>(state);
+        state = permutation::<Cfg, F, T>(state);
     }
     std::array::from_fn(|i| state[i])
 }
 
 /// Convenience function for hashing with Poseidon and squeezing the first element.
-pub fn hash0<
-    Cfg: Config<F, T, R, C>,
-    F: PrimeField,
-    const T: usize,
-    const R: usize,
-    const C: usize,
->(
+pub fn hash0<Cfg: Config<F, T>, F: PrimeField, const T: usize, const R: usize, const C: usize>(
     inputs: impl IntoIterator<Item = F>,
 ) -> F {
     hash::<Cfg, F, T, R, C>(inputs)[0]
