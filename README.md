@@ -13,8 +13,7 @@ Note that this crate uses version 1 of the permutation. For version 2 see the
 
 The implementation is generic and works on any prime field.
 
-Configurations for the BLS12-381 and BlueSky prime fields are provided; they support T=3 (R=2, C=1)
-and T=4 (R=3, C=1).
+Configurations for the BLS12-381 and BlueSky prime fields are provided; they support T=3 and T=4.
 
 > [!NOTE]
 > The BLS12-381 configurations are controlled by the `bls12_381` feature flag, which is disabled by
