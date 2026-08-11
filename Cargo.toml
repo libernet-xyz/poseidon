@@ -21,3 +21,4 @@ starkom-ff = "2.3.0"
 default = ["bluesky"]
 bls12_381 = []
 bluesky = ["starkom-bluesky"]
+cipher = []
