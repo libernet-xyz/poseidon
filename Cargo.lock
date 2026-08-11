@@ -516,6 +516,7 @@ dependencies = [
 name = "starkom-poseidon"
 version = "3.0.1"
 dependencies = [
+ "anyhow",
  "primitive-types",
  "sha3",
  "starkom-bluesky",

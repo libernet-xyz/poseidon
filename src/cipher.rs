@@ -1,4 +1,5 @@
 use crate::poseidon::{Config, permutation};
+use anyhow::{Result, anyhow};
 use primitive_types::H512;
 use sha3::{self, Digest};
 use starkom_ff::PrimeField256;
@@ -10,26 +11,39 @@ fn iv_element<F: PrimeField256>(index: usize) -> F {
     F::from_h512(H512::from_slice(hasher.finalize().as_slice()))
 }
 
+fn get_initial_state<F: PrimeField256, const T: usize, const R: usize>(key: F) -> [F; T] {
+    let mut state = [F::ZERO; T];
+    for i in 0..R {
+        state[i] = iv_element(i);
+    }
+    state[T - 1] = key;
+    state
+}
+
+/// Encrypts an arbitrary number of field elements in batches of `R` using the Poseidon permutation
+/// with state size `T`.
+///
+/// `R` must be `T - 1` (the last element is reserved for capacity).
+///
+/// This symmetric cipher is implemented using the Poseidon PRP as a block cipher in duplex sponge
+/// mode, which is similar to CFB. The keystream travels in the capacity element.
 #[derive(Debug, Copy, Clone)]
-pub struct Encrypt<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> {
+pub struct Encryptor<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> {
     state: [F; T],
     _data: PhantomData<C>,
 }
 
-impl<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> Encrypt<C, F, T, R> {
+impl<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> Encryptor<C, F, T, R> {
+    /// Constructs an `Encryptor` with the specified key.
     pub fn new(key: F) -> Self {
         assert_eq!(R, T - 1);
-        let mut state = [F::ZERO; T];
-        for i in 0..R {
-            state[i] = iv_element(i);
-        }
-        state[T - 1] = key;
         Self {
-            state,
+            state: get_initial_state::<F, T, R>(key),
             _data: PhantomData::default(),
         }
     }
 
+    /// Encrypts a block of `R` field elements.
     pub fn encrypt(&mut self, block: [F; R]) -> [F; R] {
         self.state = permutation::<C, F, T>(self.state);
         for i in 0..R {
@@ -38,32 +52,37 @@ impl<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> Encrypt<
         std::array::from_fn(|i| self.state[i])
     }
 
+    /// Performs the final checksumming.
     pub fn finalize(mut self) -> F {
         self.state = permutation::<C, F, T>(self.state);
         self.state[T - 1]
     }
 }
 
+/// Decrypts an arbitrary number of field elements in batches of `R` using the Poseidon permutation
+/// with state size `T`.
+///
+/// `R` must be `T - 1` (the last element is reserved for capacity).
+///
+/// This symmetric cipher is implemented using the Poseidon PRP as a block cipher in duplex sponge
+/// mode, which is similar to CFB. The keystream travels in the capacity element.
 #[derive(Debug, Copy, Clone)]
-pub struct Decrypt<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> {
+pub struct Decryptor<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> {
     state: [F; T],
     _data: PhantomData<C>,
 }
 
-impl<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> Decrypt<C, F, T, R> {
+impl<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> Decryptor<C, F, T, R> {
+    /// Constructs a `Decryptor` with the specified key.
     pub fn new(key: F) -> Self {
         assert_eq!(R, T - 1);
-        let mut state = [F::ZERO; T];
-        for i in 0..R {
-            state[i] = iv_element(i);
-        }
-        state[T - 1] = key;
         Self {
-            state,
+            state: get_initial_state::<F, T, R>(key),
             _data: PhantomData::default(),
         }
     }
 
+    /// Decrypts a block of `R` field elements.
     pub fn decrypt(&mut self, mut block: [F; R]) -> [F; R] {
         self.state = permutation::<C, F, T>(self.state);
         for i in 0..R {
@@ -74,9 +93,13 @@ impl<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> Decrypt<
         block
     }
 
-    pub fn check(mut self, checksum: F) -> bool {
+    /// Performs the final authentication.
+    pub fn finalize(mut self, checksum: F) -> Result<()> {
         self.state = permutation::<C, F, T>(self.state);
-        self.state[T - 1] == checksum
+        if self.state[T - 1] != checksum {
+            return Err(anyhow!("invalid checksum {}", checksum));
+        }
+        Ok(())
     }
 }
 
@@ -96,7 +119,7 @@ mod tests {
 
     #[test]
     fn test_encrypt_one_block_t3_key1() {
-        let mut encrypt = Encrypt::<BlueSkyConfig3, Scalar, 3, 2>::new(key1());
+        let mut encrypt = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key1());
         let block = encrypt.encrypt([from_const(12), from_const(34)]);
         let checksum = encrypt.finalize();
         assert_eq!(
@@ -114,7 +137,7 @@ mod tests {
 
     #[test]
     fn test_encrypt_one_block_t3_key2() {
-        let mut encrypt = Encrypt::<BlueSkyConfig3, Scalar, 3, 2>::new(key2());
+        let mut encrypt = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key2());
         let block = encrypt.encrypt([from_const(12), from_const(34)]);
         let checksum = encrypt.finalize();
         assert_eq!(
@@ -135,24 +158,24 @@ mod tests {
     #[test]
     fn test_decrypt_one_block_t3_key1() {
         let key = key1();
-        let mut encrypt = Encrypt::<BlueSkyConfig3, Scalar, 3, 2>::new(key);
+        let mut encrypt = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key);
         let ciphertext = encrypt.encrypt([from_const(12), from_const(34)]);
         let checksum = encrypt.finalize();
-        let mut decrypt = Decrypt::<BlueSkyConfig3, Scalar, 3, 2>::new(key);
+        let mut decrypt = Decryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key);
         let plaintext = decrypt.decrypt(ciphertext);
-        assert!(decrypt.check(checksum));
+        assert!(decrypt.finalize(checksum).is_ok());
         assert_eq!(plaintext, [from_const(12), from_const(34)]);
     }
 
     #[test]
     fn test_decrypt_one_block_t3_key2() {
         let key = key2();
-        let mut encrypt = Encrypt::<BlueSkyConfig3, Scalar, 3, 2>::new(key);
+        let mut encrypt = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key);
         let ciphertext = encrypt.encrypt([from_const(12), from_const(34)]);
         let checksum = encrypt.finalize();
-        let mut decrypt = Decrypt::<BlueSkyConfig3, Scalar, 3, 2>::new(key);
+        let mut decrypt = Decryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key);
         let plaintext = decrypt.decrypt(ciphertext);
-        assert!(decrypt.check(checksum));
+        assert!(decrypt.finalize(checksum).is_ok());
         assert_eq!(plaintext, [from_const(12), from_const(34)]);
     }
 
