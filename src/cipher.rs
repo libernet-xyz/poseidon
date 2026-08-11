@@ -126,7 +126,7 @@ impl<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> Decrypto
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::bluesky::BlueSkyConfig3;
+    use crate::bluesky::{BlueSkyConfig3, BlueSkyConfig4};
     use starkom_bluesky::{Scalar, from_const, parse_scalar};
 
     fn key1() -> Scalar {
@@ -262,7 +262,136 @@ mod tests {
         assert_ne!(checksum1, checksum2);
     }
 
-    // TODO
+    #[test]
+    fn test_encrypt_one_block_t4_key1() {
+        let key = key1();
+        let nonce = from_const(42);
+        let mut encryptor = Encryptor::<BlueSkyConfig4, Scalar, 4, 3>::with_nonce(key, nonce);
+        let block = encryptor.encrypt([from_const(12), from_const(34), from_const(56)]);
+        let checksum = encryptor.finalize();
+        assert_eq!(
+            block,
+            [
+                parse_scalar("0x262ac20afb60da258ce496991b09221095fa89b4e375876e047cf389a12c28d1"),
+                parse_scalar("0x1d4422dfa9af168ee77af114d58fe06162d32f6f4b128d53bb9b1d169241cea2"),
+                parse_scalar("0x2843135c565ec941931fc326c96ca5d187570f15d082e0c9c3308a678314172e")
+            ]
+        );
+        assert_eq!(
+            checksum,
+            parse_scalar("0x13b415ea59df595d8651bc42ce38470688b1a2d3ae7c6c0749f9008ea9d5b1a6")
+        );
+    }
+
+    #[test]
+    fn test_encrypt_one_block_t4_key2() {
+        let key = key2();
+        let nonce = from_const(42);
+        let mut encryptor = Encryptor::<BlueSkyConfig4, Scalar, 4, 3>::with_nonce(key, nonce);
+        let block = encryptor.encrypt([from_const(12), from_const(34), from_const(56)]);
+        let checksum = encryptor.finalize();
+        assert_eq!(
+            block,
+            [
+                parse_scalar("0x4531d56f264d8c7df09bd06861bb3c2548efd94d3c54097563a0115491f025f2"),
+                parse_scalar("0x4913fa4a63909a2ba45d8a7b086820e0a85140be47ad3cbbd6bef7358fa2aace"),
+                parse_scalar("0x11132fc7bc6074e99d1b61498310e5dd0f233d35badbaacde44011ff3b864220")
+            ]
+        );
+        assert_eq!(
+            checksum,
+            parse_scalar("0x5e127877e3c727c3603b97fd9bd49ea5dfffc69aaf0b8a38a825cb72e2175551")
+        );
+    }
+
+    #[test]
+    fn test_encrypt_one_block_t4_different_nonces() {
+        let key = key1();
+        let mut encryptor1 = Encryptor::<BlueSkyConfig4, Scalar, 4, 3>::new(key);
+        let block1 = encryptor1.encrypt([from_const(12), from_const(34), from_const(56)]);
+        let checksum1 = encryptor1.finalize();
+        let mut encryptor2 = Encryptor::<BlueSkyConfig4, Scalar, 4, 3>::new(key);
+        let block2 = encryptor2.encrypt([from_const(12), from_const(34), from_const(56)]);
+        let checksum2 = encryptor2.finalize();
+        assert_ne!(block1, block2);
+        assert_ne!(checksum1, checksum2);
+    }
+
+    #[test]
+    fn test_encrypt_two_blocks_t4_key1() {
+        let key = key1();
+        let nonce = from_const(42);
+        let mut encryptor = Encryptor::<BlueSkyConfig4, Scalar, 4, 3>::with_nonce(key, nonce);
+        let block1 = encryptor.encrypt([from_const(34), from_const(56), from_const(78)]);
+        let block2 = encryptor.encrypt([from_const(90), from_const(112), from_const(134)]);
+        let checksum = encryptor.finalize();
+        assert_eq!(
+            block1,
+            [
+                parse_scalar("0x262ac20afb60da258ce496991b09221095fa89b4e375876e047cf389a12c28e7"),
+                parse_scalar("0x1d4422dfa9af168ee77af114d58fe06162d32f6f4b128d53bb9b1d169241ceb8"),
+                parse_scalar("0x2843135c565ec941931fc326c96ca5d187570f15d082e0c9c3308a6783141744")
+            ]
+        );
+        assert_eq!(
+            block2,
+            [
+                parse_scalar("0x4e2c6846c0d508c0af16a40abb17a43d06e47f46d4aace3ab88dee6e41b79869"),
+                parse_scalar("0x3ab1e0c409acdd7edf704bd003ed571efb0df067d96bceff5cc58c4a793335f9"),
+                parse_scalar("0x579e4621b372907485bc499f279a0b6695604119fd3b165de018aa6e276027d2")
+            ]
+        );
+        assert_eq!(
+            checksum,
+            parse_scalar("0x3d44d1ce4ce7328cb46e7e06fc2ad1fc01c9544c8a638f15743c49bea17de14d")
+        );
+    }
+
+    #[test]
+    fn test_encrypt_two_blocks_t4_key2() {
+        let key = key2();
+        let nonce = from_const(42);
+        let mut encryptor = Encryptor::<BlueSkyConfig4, Scalar, 4, 3>::with_nonce(key, nonce);
+        let block1 = encryptor.encrypt([from_const(34), from_const(56), from_const(78)]);
+        let block2 = encryptor.encrypt([from_const(90), from_const(112), from_const(134)]);
+        let checksum = encryptor.finalize();
+        assert_eq!(
+            block1,
+            [
+                parse_scalar("0x4531d56f264d8c7df09bd06861bb3c2548efd94d3c54097563a0115491f02608"),
+                parse_scalar("0x4913fa4a63909a2ba45d8a7b086820e0a85140be47ad3cbbd6bef7358fa2aae4"),
+                parse_scalar("0x11132fc7bc6074e99d1b61498310e5dd0f233d35badbaacde44011ff3b864236")
+            ]
+        );
+        assert_eq!(
+            block2,
+            [
+                parse_scalar("0x67d9c4dbb7b50a468ef0db6df9f7e1221542f261fe557c364e39a39613ff6ea8"),
+                parse_scalar("0x00e1d8568b51bfa0392d2eb6cd000e65205b35b164e96d4487d7dc1a6683af9a"),
+                parse_scalar("0x114b30b53b4eb1ff99f78b5eb0c788d9d390ebfcd637ee7d8bba42e88a86f817")
+            ]
+        );
+        assert_eq!(
+            checksum,
+            parse_scalar("0x2bb69b5b886fa2ec8a523ac0df90bf4cb8db09ad1d0d176e70fa3d78a77d10df")
+        );
+    }
+
+    #[test]
+    fn test_encrypt_two_blocks_t4_different_nonces() {
+        let key = key1();
+        let mut encryptor1 = Encryptor::<BlueSkyConfig4, Scalar, 4, 3>::new(key);
+        let block11 = encryptor1.encrypt([from_const(34), from_const(56), from_const(78)]);
+        let block12 = encryptor1.encrypt([from_const(90), from_const(112), from_const(134)]);
+        let checksum1 = encryptor1.finalize();
+        let mut encryptor2 = Encryptor::<BlueSkyConfig4, Scalar, 4, 3>::new(key);
+        let block21 = encryptor2.encrypt([from_const(34), from_const(56), from_const(78)]);
+        let block22 = encryptor2.encrypt([from_const(90), from_const(112), from_const(134)]);
+        let checksum2 = encryptor2.finalize();
+        assert_ne!(block11, block21);
+        assert_ne!(block12, block22);
+        assert_ne!(checksum1, checksum2);
+    }
 
     #[test]
     fn test_decrypt_one_block_t3_key1() {
@@ -351,5 +480,99 @@ mod tests {
         assert_eq!(plaintext2, [from_const(78), from_const(90)]);
     }
 
-    // TODO
+    #[test]
+    fn test_decrypt_one_block_t4_key1() {
+        let key = key1();
+        let nonce = from_const(42);
+        let mut encryptor = Encryptor::<BlueSkyConfig4, Scalar, 4, 3>::with_nonce(key, nonce);
+        let ciphertext = encryptor.encrypt([from_const(12), from_const(34), from_const(56)]);
+        let checksum = encryptor.finalize();
+        let mut decryptor = Decryptor::<BlueSkyConfig4, Scalar, 4, 3>::new(key, nonce);
+        let plaintext = decryptor.decrypt(ciphertext);
+        assert!(decryptor.finalize(checksum).is_ok());
+        assert_eq!(plaintext, [from_const(12), from_const(34), from_const(56)]);
+    }
+
+    #[test]
+    fn test_decrypt_one_block_t4_key2() {
+        let key = key2();
+        let nonce = from_const(42);
+        let mut encryptor = Encryptor::<BlueSkyConfig4, Scalar, 4, 3>::with_nonce(key, nonce);
+        let ciphertext = encryptor.encrypt([from_const(12), from_const(34), from_const(56)]);
+        let checksum = encryptor.finalize();
+        let mut decryptor = Decryptor::<BlueSkyConfig4, Scalar, 4, 3>::new(key, nonce);
+        let plaintext = decryptor.decrypt(ciphertext);
+        assert!(decryptor.finalize(checksum).is_ok());
+        assert_eq!(plaintext, [from_const(12), from_const(34), from_const(56)]);
+    }
+
+    #[test]
+    fn test_decrypt_one_block_t4_automatic_nonce() {
+        let key = key1();
+        let mut encryptor = Encryptor::<BlueSkyConfig4, Scalar, 4, 3>::new(key);
+        let nonce = encryptor.nonce();
+        let ciphertext = encryptor.encrypt([from_const(12), from_const(34), from_const(56)]);
+        let checksum = encryptor.finalize();
+        let mut decryptor = Decryptor::<BlueSkyConfig4, Scalar, 4, 3>::new(key, nonce);
+        let plaintext = decryptor.decrypt(ciphertext);
+        assert!(decryptor.finalize(checksum).is_ok());
+        assert_eq!(plaintext, [from_const(12), from_const(34), from_const(56)]);
+    }
+
+    #[test]
+    fn test_decrypt_two_blocks_t4_key1() {
+        let key = key1();
+        let nonce = from_const(42);
+        let mut encryptor = Encryptor::<BlueSkyConfig4, Scalar, 4, 3>::with_nonce(key, nonce);
+        let ciphertext1 = encryptor.encrypt([from_const(34), from_const(56), from_const(78)]);
+        let ciphertext2 = encryptor.encrypt([from_const(90), from_const(112), from_const(134)]);
+        let checksum = encryptor.finalize();
+        let mut decryptor = Decryptor::<BlueSkyConfig4, Scalar, 4, 3>::new(key, nonce);
+        let plaintext1 = decryptor.decrypt(ciphertext1);
+        let plaintext2 = decryptor.decrypt(ciphertext2);
+        assert!(decryptor.finalize(checksum).is_ok());
+        assert_eq!(plaintext1, [from_const(34), from_const(56), from_const(78)]);
+        assert_eq!(
+            plaintext2,
+            [from_const(90), from_const(112), from_const(134)]
+        );
+    }
+
+    #[test]
+    fn test_decrypt_two_blocks_t4_key2() {
+        let key = key2();
+        let nonce = from_const(42);
+        let mut encryptor = Encryptor::<BlueSkyConfig4, Scalar, 4, 3>::with_nonce(key, nonce);
+        let ciphertext1 = encryptor.encrypt([from_const(34), from_const(56), from_const(78)]);
+        let ciphertext2 = encryptor.encrypt([from_const(90), from_const(112), from_const(134)]);
+        let checksum = encryptor.finalize();
+        let mut decryptor = Decryptor::<BlueSkyConfig4, Scalar, 4, 3>::new(key, nonce);
+        let plaintext1 = decryptor.decrypt(ciphertext1);
+        let plaintext2 = decryptor.decrypt(ciphertext2);
+        assert!(decryptor.finalize(checksum).is_ok());
+        assert_eq!(plaintext1, [from_const(34), from_const(56), from_const(78)]);
+        assert_eq!(
+            plaintext2,
+            [from_const(90), from_const(112), from_const(134)]
+        );
+    }
+
+    #[test]
+    fn test_decrypt_two_blocks_t4_automatic_nonce() {
+        let key = key1();
+        let mut encryptor = Encryptor::<BlueSkyConfig4, Scalar, 4, 3>::new(key);
+        let nonce = encryptor.nonce();
+        let ciphertext1 = encryptor.encrypt([from_const(34), from_const(56), from_const(78)]);
+        let ciphertext2 = encryptor.encrypt([from_const(90), from_const(112), from_const(134)]);
+        let checksum = encryptor.finalize();
+        let mut decryptor = Decryptor::<BlueSkyConfig4, Scalar, 4, 3>::new(key, nonce);
+        let plaintext1 = decryptor.decrypt(ciphertext1);
+        let plaintext2 = decryptor.decrypt(ciphertext2);
+        assert!(decryptor.finalize(checksum).is_ok());
+        assert_eq!(plaintext1, [from_const(34), from_const(56), from_const(78)]);
+        assert_eq!(
+            plaintext2,
+            [from_const(90), from_const(112), from_const(134)]
+        );
+    }
 }
