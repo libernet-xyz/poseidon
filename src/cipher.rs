@@ -11,10 +11,10 @@ fn iv_element<F: PrimeField256>(index: usize) -> F {
     F::from_h512(H512::from_slice(hasher.finalize().as_slice()))
 }
 
-fn get_initial_state<F: PrimeField256, const T: usize, const R: usize>(key: F) -> [F; T] {
+fn get_initial_state<F: PrimeField256, const T: usize, const R: usize>(key: F, nonce: F) -> [F; T] {
     let mut state = [F::ZERO; T];
     for i in 0..R {
-        state[i] = iv_element(i);
+        state[i] = iv_element::<F>(i) + nonce;
     }
     state[T - 1] = key;
     state
@@ -27,20 +27,40 @@ fn get_initial_state<F: PrimeField256, const T: usize, const R: usize>(key: F) -
 ///
 /// This symmetric cipher is implemented using the Poseidon PRP as a block cipher in duplex sponge
 /// mode, which is similar to CFB. The keystream travels in the capacity element.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug)]
 pub struct Encryptor<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> {
+    nonce: F,
     state: [F; T],
     _data: PhantomData<C>,
 }
 
 impl<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> Encryptor<C, F, T, R> {
-    /// Constructs an `Encryptor` with the specified key.
-    pub fn new(key: F) -> Self {
+    /// Constructs an `Encryptor` with the specified `key` and `nonce`.
+    ///
+    /// WARNING: NEVER reuse the same (key, nonce) pair to encrypt two or more different messages,
+    /// as doing so would leak information about the plaintexts!
+    pub fn with_nonce(key: F, nonce: F) -> Self {
         assert_eq!(R, T - 1);
         Self {
-            state: get_initial_state::<F, T, R>(key),
+            nonce,
+            state: get_initial_state::<F, T, R>(key, nonce),
             _data: PhantomData::default(),
         }
+    }
+
+    /// Constructs an `Encryptor` with the specified `key` and a securely generated fresh nonce.
+    ///
+    /// You can retrieve the nonce by calling [`Self::nonce`].
+    pub fn new(key: F) -> Self {
+        Self::with_nonce(key, F::random_default())
+    }
+
+    /// Returns the nonce used by the `Encryptor`.
+    ///
+    /// This can be transmitted publicly along with the ciphertext and will be needed to construct
+    /// the [`Decryptor`].
+    pub fn nonce(&self) -> F {
+        self.nonce
     }
 
     /// Encrypts a block of `R` field elements.
@@ -66,18 +86,18 @@ impl<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> Encrypto
 ///
 /// This symmetric cipher is implemented using the Poseidon PRP as a block cipher in duplex sponge
 /// mode, which is similar to CFB. The keystream travels in the capacity element.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug)]
 pub struct Decryptor<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> {
     state: [F; T],
     _data: PhantomData<C>,
 }
 
 impl<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> Decryptor<C, F, T, R> {
-    /// Constructs a `Decryptor` with the specified key.
-    pub fn new(key: F) -> Self {
+    /// Constructs a `Decryptor` with the specified `key` and `nonce`.
+    pub fn new(key: F, nonce: F) -> Self {
         assert_eq!(R, T - 1);
         Self {
-            state: get_initial_state::<F, T, R>(key),
+            state: get_initial_state::<F, T, R>(key, nonce),
             _data: PhantomData::default(),
         }
     }
@@ -96,7 +116,7 @@ impl<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> Decrypto
     /// Performs the final authentication.
     pub fn finalize(mut self, checksum: F) -> Result<()> {
         self.state = permutation::<C, F, T>(self.state);
-        if self.state[T - 1] != checksum {
+        if self.state[T - 1].ct_ne(&checksum).into() {
             return Err(anyhow!("invalid checksum {}", checksum));
         }
         Ok(())
@@ -119,38 +139,55 @@ mod tests {
 
     #[test]
     fn test_encrypt_one_block_t3_key1() {
-        let mut encrypt = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key1());
+        let key = key1();
+        let nonce = from_const(42);
+        let mut encrypt = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::with_nonce(key, nonce);
         let block = encrypt.encrypt([from_const(12), from_const(34)]);
         let checksum = encrypt.finalize();
         assert_eq!(
             block,
             [
-                parse_scalar("0x58535d9773cc328d7171b581df847f73b527701dacee410caf0b8cd285c0a068"),
-                parse_scalar("0x7304e0ab500528a114c7f677541778bf12fe402c8eb7fb066d6adaf5f0ab13a5")
+                parse_scalar("0x2307fa34de8cc857511a6ffd5c5a75c2ac280e1590cda33b7d255a278161af22"),
+                parse_scalar("0x631ab9ce12321bd66b3a4476558038375dbd5a92866b91b7a8e4202ca61d7dfa")
             ]
         );
         assert_eq!(
             checksum,
-            parse_scalar("0x33e0f86c12c6e6cc82796bf80babf506018dd3e065e42ef27c0452fc8dda3908")
+            parse_scalar("0x6f9251844ea80a125aac5cb50eae00be052eb6059fa2676e87611994cac4825e")
         );
     }
 
     #[test]
     fn test_encrypt_one_block_t3_key2() {
-        let mut encrypt = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key2());
+        let key = key2();
+        let nonce = from_const(42);
+        let mut encrypt = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::with_nonce(key, nonce);
         let block = encrypt.encrypt([from_const(12), from_const(34)]);
         let checksum = encrypt.finalize();
         assert_eq!(
             block,
             [
-                parse_scalar("0x46974bbed8470bcc9de31628f46998e63a44605fbf9be8fbc386e82bb87cfd5a"),
-                parse_scalar("0x0d197a8b8acccf87a519cc4825a23acb170b3a4f90bb0605335a6a54cb30a262")
+                parse_scalar("0x3fefa9a61ab2d7c6f84934cbb502f612083c3c683b4bbf4d3fd8430f23e39b1a"),
+                parse_scalar("0x7f4aa6d73c8cfa472f92d771d0459ce958c230cdacc7dd3164209a9fe7f9d88c")
             ]
         );
         assert_eq!(
             checksum,
-            parse_scalar("0x42a1d65d0e78b32287597684d57a289e3074de14b3dce774ae333b648cb65b7b")
+            parse_scalar("0x5ccd3bea81baecca7e1a37a2215251fbbba2cc9b18924547ad321ae0286955a3")
         );
+    }
+
+    #[test]
+    fn test_encrypt_one_block_t3_different_nonces() {
+        let key = key1();
+        let mut encrypt1 = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key);
+        let block1 = encrypt1.encrypt([from_const(12), from_const(34)]);
+        let checksum1 = encrypt1.finalize();
+        let mut encrypt2 = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key);
+        let block2 = encrypt2.encrypt([from_const(12), from_const(34)]);
+        let checksum2 = encrypt2.finalize();
+        assert_ne!(block1, block2);
+        assert_ne!(checksum1, checksum2);
     }
 
     // TODO
@@ -158,10 +195,11 @@ mod tests {
     #[test]
     fn test_decrypt_one_block_t3_key1() {
         let key = key1();
-        let mut encrypt = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key);
+        let nonce = from_const(42);
+        let mut encrypt = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::with_nonce(key, nonce);
         let ciphertext = encrypt.encrypt([from_const(12), from_const(34)]);
         let checksum = encrypt.finalize();
-        let mut decrypt = Decryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key);
+        let mut decrypt = Decryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key, nonce);
         let plaintext = decrypt.decrypt(ciphertext);
         assert!(decrypt.finalize(checksum).is_ok());
         assert_eq!(plaintext, [from_const(12), from_const(34)]);
@@ -170,10 +208,24 @@ mod tests {
     #[test]
     fn test_decrypt_one_block_t3_key2() {
         let key = key2();
-        let mut encrypt = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key);
+        let nonce = from_const(42);
+        let mut encrypt = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::with_nonce(key, nonce);
         let ciphertext = encrypt.encrypt([from_const(12), from_const(34)]);
         let checksum = encrypt.finalize();
-        let mut decrypt = Decryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key);
+        let mut decrypt = Decryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key, nonce);
+        let plaintext = decrypt.decrypt(ciphertext);
+        assert!(decrypt.finalize(checksum).is_ok());
+        assert_eq!(plaintext, [from_const(12), from_const(34)]);
+    }
+
+    #[test]
+    fn test_decrypt_one_block_t3_automatic_nonce() {
+        let key = key1();
+        let mut encrypt = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key);
+        let nonce = encrypt.nonce();
+        let ciphertext = encrypt.encrypt([from_const(12), from_const(34)]);
+        let checksum = encrypt.finalize();
+        let mut decrypt = Decryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key, nonce);
         let plaintext = decrypt.decrypt(ciphertext);
         assert!(decrypt.finalize(checksum).is_ok());
         assert_eq!(plaintext, [from_const(12), from_const(34)]);
