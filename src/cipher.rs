@@ -26,7 +26,7 @@ fn get_initial_state<F: PrimeField256, const T: usize, const R: usize>(key: F, n
 /// `R` must be `T - 1` (the last element is reserved for capacity).
 ///
 /// This symmetric cipher is implemented using the Poseidon PRP as a block cipher in duplex sponge
-/// mode, which is similar to CFB. The keystream travels in the capacity element.
+/// mode, which is similar to CFB. The key lives in the capacity element.
 #[derive(Debug)]
 pub struct Encryptor<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> {
     nonce: F,
@@ -85,7 +85,7 @@ impl<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> Encrypto
 /// `R` must be `T - 1` (the last element is reserved for capacity).
 ///
 /// This symmetric cipher is implemented using the Poseidon PRP as a block cipher in duplex sponge
-/// mode, which is similar to CFB. The keystream travels in the capacity element.
+/// mode, which is similar to CFB. The key lives in the capacity element.
 #[derive(Debug)]
 pub struct Decryptor<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> {
     state: [F; T],
@@ -187,6 +187,78 @@ mod tests {
         let block2 = encrypt2.encrypt([from_const(12), from_const(34)]);
         let checksum2 = encrypt2.finalize();
         assert_ne!(block1, block2);
+        assert_ne!(checksum1, checksum2);
+    }
+
+    #[test]
+    fn test_encrypt_two_blocks_t3_key1() {
+        let key = key1();
+        let nonce = from_const(42);
+        let mut encrypt = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::with_nonce(key, nonce);
+        let block1 = encrypt.encrypt([from_const(34), from_const(56)]);
+        let block2 = encrypt.encrypt([from_const(78), from_const(90)]);
+        let checksum = encrypt.finalize();
+        assert_eq!(
+            block1,
+            [
+                parse_scalar("0x2307fa34de8cc857511a6ffd5c5a75c2ac280e1590cda33b7d255a278161af38"),
+                parse_scalar("0x631ab9ce12321bd66b3a4476558038375dbd5a92866b91b7a8e4202ca61d7e10")
+            ]
+        );
+        assert_eq!(
+            block2,
+            [
+                parse_scalar("0x6432f7934ca848ba66d3a8cc2500e26df40c4d4e8552bc051a352b5036adb848"),
+                parse_scalar("0x648dae2392ea9efc70616a33306b3d15f56185c55ab91c68ba01f3e0027f0b0e")
+            ]
+        );
+        assert_eq!(
+            checksum,
+            parse_scalar("0x093e03fb2f47bfc00585152cad24975804ba18ce4f705aa51928a360a313e40c")
+        );
+    }
+
+    #[test]
+    fn test_encrypt_two_blocks_t3_key2() {
+        let key = key2();
+        let nonce = from_const(42);
+        let mut encrypt = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::with_nonce(key, nonce);
+        let block1 = encrypt.encrypt([from_const(34), from_const(56)]);
+        let block2 = encrypt.encrypt([from_const(78), from_const(90)]);
+        let checksum = encrypt.finalize();
+        assert_eq!(
+            block1,
+            [
+                parse_scalar("0x3fefa9a61ab2d7c6f84934cbb502f612083c3c683b4bbf4d3fd8430f23e39b30"),
+                parse_scalar("0x7f4aa6d73c8cfa472f92d771d0459ce958c230cdacc7dd3164209a9fe7f9d8a2")
+            ]
+        );
+        assert_eq!(
+            block2,
+            [
+                parse_scalar("0x6c404df8c619bc5bc8751cc66a57fc8fccef7d427b136b9f7f99cc2025f0d830"),
+                parse_scalar("0x55ae7196244639cb33aca30d47424baa09d61ee6b878dd250a3e3f871d15d71a")
+            ]
+        );
+        assert_eq!(
+            checksum,
+            parse_scalar("0x70517f6c982dc4927bc74cb76b461fff2d22e80fe27a14f4131fc75e87ea2fcf")
+        );
+    }
+
+    #[test]
+    fn test_encrypt_two_blocks_t3_different_nonces() {
+        let key = key1();
+        let mut encrypt1 = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key);
+        let block11 = encrypt1.encrypt([from_const(34), from_const(56)]);
+        let block12 = encrypt1.encrypt([from_const(78), from_const(90)]);
+        let checksum1 = encrypt1.finalize();
+        let mut encrypt2 = Encryptor::<BlueSkyConfig3, Scalar, 3, 2>::new(key);
+        let block21 = encrypt2.encrypt([from_const(34), from_const(56)]);
+        let block22 = encrypt2.encrypt([from_const(78), from_const(90)]);
+        let checksum2 = encrypt2.finalize();
+        assert_ne!(block11, block21);
+        assert_ne!(block12, block22);
         assert_ne!(checksum1, checksum2);
     }
 
