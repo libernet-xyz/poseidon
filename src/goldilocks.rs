@@ -213,6 +213,86 @@ mod tests {
     }
 
     #[test]
+    fn test_hash_t12_8() {
+        assert_eq!(
+            hash_t12([
+                from_const(0),
+                from_const(1),
+                from_const(2),
+                from_const(3),
+                from_const(4),
+                from_const(5),
+                from_const(6),
+                from_const(7),
+            ]),
+            [
+                parse_scalar("0xe14b6d896101a5b4"),
+                parse_scalar("0x1aac9183d60f237e"),
+                parse_scalar("0x68b940c9c47cff6a"),
+                parse_scalar("0x6b1788ed1bea5707"),
+                parse_scalar("0x60b5cad71c7370b1"),
+                parse_scalar("0xaa56bf27f39687ab"),
+                parse_scalar("0x67227b2658e6ad5f"),
+                parse_scalar("0xbf1bb3b67213367b"),
+            ]
+        );
+        assert_eq!(
+            hash_t12_0([
+                from_const(0),
+                from_const(1),
+                from_const(2),
+                from_const(3),
+                from_const(4),
+                from_const(5),
+                from_const(6),
+                from_const(7),
+            ]),
+            parse_scalar("0xe14b6d896101a5b4")
+        );
+    }
+
+    #[test]
+    fn test_hash_t12_9() {
+        assert_eq!(
+            hash_t12([
+                from_const(0),
+                from_const(1),
+                from_const(2),
+                from_const(3),
+                from_const(4),
+                from_const(5),
+                from_const(6),
+                from_const(7),
+                from_const(8),
+            ]),
+            [
+                parse_scalar("0xc63a0bf2f95303e1"),
+                parse_scalar("0x86a0748d2e82d798"),
+                parse_scalar("0xa1cc64de6ee46e7c"),
+                parse_scalar("0xd04bef1710a62ad1"),
+                parse_scalar("0xdd322535c9196309"),
+                parse_scalar("0x6a1bf401fe051af9"),
+                parse_scalar("0x4a36ccc9e9ca943e"),
+                parse_scalar("0x4a295ffdbefde65e"),
+            ]
+        );
+        assert_eq!(
+            hash_t12_0([
+                from_const(0),
+                from_const(1),
+                from_const(2),
+                from_const(3),
+                from_const(4),
+                from_const(5),
+                from_const(6),
+                from_const(7),
+                from_const(8),
+            ]),
+            parse_scalar("0xc63a0bf2f95303e1")
+        );
+    }
+
+    #[test]
     fn test_hash_t12_11() {
         assert_eq!(
             hash_t12([
