@@ -16,6 +16,12 @@ pub trait Config<F: PrimeField, const T: usize> {
     }
 
     /// Applies an optimal S-box for this field.
+    ///
+    /// NOTE: the provided implementation is constant-time even though it uses
+    /// [`pow_small_vartime`](`starkom_ff::Field::pow_small_vartime`) because [`PrimeField::ALPHA`]
+    /// is constant, so the vartime algorithm will always run in the same amount of time. The
+    /// constant-time algorithm would be slower because it would perform unnecessary
+    /// multiplications.
     fn sbox(x: F) -> F {
         x.pow_small_vartime(F::ALPHA)
     }
