@@ -21,6 +21,9 @@ pub use cipher::*;
 #[cfg(feature = "goldilocks")]
 pub mod goldilocks;
 
+#[cfg(feature = "koalabear")]
+pub mod koalabear;
+
 #[cfg(feature = "schraderbrau")]
 pub mod schraderbrau;
 
@@ -34,6 +37,9 @@ pub use bluesky::*;
 
 #[cfg(feature = "goldilocks")]
 pub use goldilocks::*;
+
+#[cfg(feature = "koalabear")]
+pub use koalabear::*;
 
 #[cfg(feature = "schraderbrau")]
 pub use schraderbrau::*;
