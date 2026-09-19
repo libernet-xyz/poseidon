@@ -85,6 +85,10 @@ mod tests {
         poseidon::hash0::<KoalaBearConfig32, Scalar, 32, 24, 8>(inputs)
     }
 
+    fn sequential_inputs<const N: usize>() -> [Scalar; N] {
+        std::array::from_fn(|i| from_const(i as u32))
+    }
+
     #[test]
     fn test_permutation_t24() {
         assert_eq!(
@@ -275,7 +279,7 @@ mod tests {
     #[test]
     fn test_hash_t24_16() {
         assert_eq!(
-            hash_t24(std::array::from_fn::<_, 16, _>(|i| from_const(i as u32))),
+            hash_t24(sequential_inputs::<16>()),
             [
                 from_const(0x3cbc6d5c),
                 from_const(0x3efc8c2b),
@@ -296,7 +300,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t24_0(std::array::from_fn::<_, 16, _>(|i| from_const(i as u32))),
+            hash_t24_0(sequential_inputs::<16>()),
             from_const(0x3cbc6d5c)
         );
     }
@@ -304,7 +308,7 @@ mod tests {
     #[test]
     fn test_hash_t24_17() {
         assert_eq!(
-            hash_t24(std::array::from_fn::<_, 17, _>(|i| from_const(i as u32))),
+            hash_t24(sequential_inputs::<17>()),
             [
                 from_const(0x12db4aa5),
                 from_const(0x0c3496d0),
@@ -325,7 +329,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t24_0(std::array::from_fn::<_, 17, _>(|i| from_const(i as u32))),
+            hash_t24_0(sequential_inputs::<17>()),
             from_const(0x12db4aa5)
         );
     }
@@ -333,7 +337,7 @@ mod tests {
     #[test]
     fn test_hash_t24_23() {
         assert_eq!(
-            hash_t24(std::array::from_fn::<_, 23, _>(|i| from_const(i as u32))),
+            hash_t24(sequential_inputs::<23>()),
             [
                 from_const(0x6ff7c2fa),
                 from_const(0x1c0d103c),
@@ -354,7 +358,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t24_0(std::array::from_fn::<_, 23, _>(|i| from_const(i as u32))),
+            hash_t24_0(sequential_inputs::<23>()),
             from_const(0x6ff7c2fa)
         );
     }
@@ -362,7 +366,7 @@ mod tests {
     #[test]
     fn test_hash_t24_24() {
         assert_eq!(
-            hash_t24(std::array::from_fn::<_, 24, _>(|i| from_const(i as u32))),
+            hash_t24(sequential_inputs::<24>()),
             [
                 from_const(0x617265ca),
                 from_const(0x48452b65),
@@ -383,7 +387,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t24_0(std::array::from_fn::<_, 24, _>(|i| from_const(i as u32))),
+            hash_t24_0(sequential_inputs::<24>()),
             from_const(0x617265ca)
         );
     }
@@ -391,7 +395,7 @@ mod tests {
     #[test]
     fn test_hash_t24_25() {
         assert_eq!(
-            hash_t24(std::array::from_fn::<_, 25, _>(|i| from_const(i as u32))),
+            hash_t24(sequential_inputs::<25>()),
             [
                 from_const(0x27492ed2),
                 from_const(0x4bfd627d),
@@ -412,7 +416,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t24_0(std::array::from_fn::<_, 25, _>(|i| from_const(i as u32))),
+            hash_t24_0(sequential_inputs::<25>()),
             from_const(0x27492ed2)
         );
     }
@@ -491,7 +495,7 @@ mod tests {
     #[test]
     fn test_hash_t32_24() {
         assert_eq!(
-            hash_t32(std::array::from_fn::<_, 24, _>(|i| from_const(i as u32))),
+            hash_t32(sequential_inputs::<24>()),
             [
                 from_const(0x2669e81d),
                 from_const(0x37275f95),
@@ -520,7 +524,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t32_0(std::array::from_fn::<_, 24, _>(|i| from_const(i as u32))),
+            hash_t32_0(sequential_inputs::<24>()),
             from_const(0x2669e81d)
         );
     }
@@ -528,7 +532,7 @@ mod tests {
     #[test]
     fn test_hash_t32_25() {
         assert_eq!(
-            hash_t32(std::array::from_fn::<_, 25, _>(|i| from_const(i as u32))),
+            hash_t32(sequential_inputs::<25>()),
             [
                 from_const(0x43300146),
                 from_const(0x0806f638),
@@ -557,7 +561,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t32_0(std::array::from_fn::<_, 25, _>(|i| from_const(i as u32))),
+            hash_t32_0(sequential_inputs::<25>()),
             from_const(0x43300146)
         );
     }
@@ -565,7 +569,7 @@ mod tests {
     #[test]
     fn test_hash_t32_31() {
         assert_eq!(
-            hash_t32(std::array::from_fn::<_, 31, _>(|i| from_const(i as u32))),
+            hash_t32(sequential_inputs::<31>()),
             [
                 from_const(0x2928a1ce),
                 from_const(0x622fa59f),
@@ -594,7 +598,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t32_0(std::array::from_fn::<_, 31, _>(|i| from_const(i as u32))),
+            hash_t32_0(sequential_inputs::<31>()),
             from_const(0x2928a1ce)
         );
     }
@@ -602,7 +606,7 @@ mod tests {
     #[test]
     fn test_hash_t32_32() {
         assert_eq!(
-            hash_t32(std::array::from_fn::<_, 32, _>(|i| from_const(i as u32))),
+            hash_t32(sequential_inputs::<32>()),
             [
                 from_const(0x33fb7eab),
                 from_const(0x01effac1),
@@ -631,7 +635,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t32_0(std::array::from_fn::<_, 32, _>(|i| from_const(i as u32))),
+            hash_t32_0(sequential_inputs::<32>()),
             from_const(0x33fb7eab)
         );
     }
@@ -639,7 +643,7 @@ mod tests {
     #[test]
     fn test_hash_t32_33() {
         assert_eq!(
-            hash_t32(std::array::from_fn::<_, 33, _>(|i| from_const(i as u32))),
+            hash_t32(sequential_inputs::<33>()),
             [
                 from_const(0x41a34e14),
                 from_const(0x299a4cc1),
@@ -668,7 +672,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            hash_t32_0(std::array::from_fn::<_, 33, _>(|i| from_const(i as u32))),
+            hash_t32_0(sequential_inputs::<33>()),
             from_const(0x41a34e14)
         );
     }
