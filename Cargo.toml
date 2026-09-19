@@ -24,7 +24,7 @@ starkom-koalabear = { version = "1.0.0", optional = true }
 starkom-schraderbrau = { version = "1.0.0", optional = true }
 
 [features]
-default = ["koalabear"]
+default = []
 bls12_381 = []
 bluesky = ["starkom-bluesky"]
 cipher = ["sha3"]
