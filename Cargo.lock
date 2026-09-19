@@ -528,9 +528,9 @@ dependencies = [
 
 [[package]]
 name = "starkom-koalabear"
-version = "1.0.0"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "549456bc4a9d94805495e15ea024d8613f46628108a5313dd73eb0eee5c7f2f8"
+checksum = "30c453c3efc0859d8b2fa04f6f97887b7ca76ef10bc5e3f3427dbe8fe03a6593"
 dependencies = [
  "anyhow",
  "getrandom 0.4.3",
@@ -542,7 +542,7 @@ dependencies = [
 
 [[package]]
 name = "starkom-poseidon"
-version = "3.8.0"
+version = "3.8.1"
 dependencies = [
  "anyhow",
  "primitive-types",
