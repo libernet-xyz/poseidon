@@ -13,15 +13,16 @@ Note that this crate uses version 1 of the permutation. For version 2 see the
 
 The implementation is generic and works on any prime field.
 
-Configurations for the BLS12-381, Goldilocks, [BlueSky](https://crates.io/crates/starkom-bluesky),
-and [Schraderbrau](https://crates.io/crates/starkom-schraderbrau) prime fields are provided; the
-BLS12-381, BlueSky, and Schraderbrau configurations support T=3 and T=4, while the Goldilocks
-configurations support T=12 and T=16.
+Configurations for the BLS12-381, Goldilocks, KoalaBear,
+[BlueSky](https://crates.io/crates/starkom-bluesky), and
+[Schraderbrau](https://crates.io/crates/starkom-schraderbrau) prime fields are provided. The
+BLS12-381, BlueSky, and Schraderbrau configurations support T=3 and T=4; the Goldilocks
+configurations support T=12 and T=16; the KoalaBear configurations support T=24 and T=32.
 
 > [!NOTE]
 > All predefined configurations are gated behind feature flags to avoid including all constants in
-> all builds. The currently defined feature flags are `bls12_381`, `goldilocks`, `bluesky`, and
-> `schraderbrau`, all disabled by default.
+> all builds. The currently defined feature flags are `bls12_381`, `goldilocks`, `koalabear`,
+> `bluesky`, and `schraderbrau`, all disabled by default.
 
 ## Usage
 
