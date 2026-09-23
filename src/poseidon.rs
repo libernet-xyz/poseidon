@@ -5,14 +5,14 @@ use starkom_ff::PrimeField;
 /// `T` is the state vector size.
 pub trait Config<F: PrimeField, const T: usize> {
     /// Returns the number of full rounds on each side.
-    fn num_full_rounds() -> usize;
+    fn num_full_rounds_per_side() -> usize;
 
     /// Returns the number of partial rounds.
     fn num_partial_rounds() -> usize;
 
     /// Returns the total number of rounds.
     fn num_total_rounds() -> usize {
-        Self::num_full_rounds() * 2 + Self::num_partial_rounds()
+        Self::num_full_rounds_per_side() * 2 + Self::num_partial_rounds()
     }
 
     /// Applies an optimal S-box for this field.
@@ -45,7 +45,7 @@ fn mds<F: PrimeField, const T: usize>(matrix: &[F], state: [F; T]) -> [F; T] {
 
 /// Runs the Poseidon permutation.
 pub fn permutation<Cfg: Config<F, T>, F: PrimeField, const T: usize>(mut state: [F; T]) -> [F; T] {
-    let num_full_rounds = Cfg::num_full_rounds();
+    let num_full_rounds = Cfg::num_full_rounds_per_side();
     let num_partial_rounds = Cfg::num_partial_rounds();
     let num_total_rounds = Cfg::num_total_rounds();
     assert_eq!(num_total_rounds, 2 * num_full_rounds + num_partial_rounds);

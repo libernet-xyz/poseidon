@@ -7,7 +7,7 @@ use std::sync::LazyLock;
 pub struct KoalaBearConfig<const T: usize> {}
 
 impl poseidon::Config<Scalar, 24> for KoalaBearConfig<24> {
-    fn num_full_rounds() -> usize {
+    fn num_full_rounds_per_side() -> usize {
         4
     }
 
@@ -33,7 +33,7 @@ impl poseidon::Config<Scalar, 24> for KoalaBearConfig<24> {
 }
 
 impl poseidon::Config<Scalar, 32> for KoalaBearConfig<32> {
-    fn num_full_rounds() -> usize {
+    fn num_full_rounds_per_side() -> usize {
         4
     }
 

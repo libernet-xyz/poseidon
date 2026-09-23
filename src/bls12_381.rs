@@ -7,7 +7,7 @@ use std::sync::LazyLock;
 pub struct BlsConfig<const T: usize> {}
 
 impl poseidon::Config<Scalar, 3> for BlsConfig<3> {
-    fn num_full_rounds() -> usize {
+    fn num_full_rounds_per_side() -> usize {
         4
     }
 
@@ -33,7 +33,7 @@ impl poseidon::Config<Scalar, 3> for BlsConfig<3> {
 }
 
 impl poseidon::Config<Scalar, 4> for BlsConfig<4> {
-    fn num_full_rounds() -> usize {
+    fn num_full_rounds_per_side() -> usize {
         4
     }
 

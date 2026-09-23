@@ -7,7 +7,7 @@ use std::sync::LazyLock;
 pub struct GoldilocksConfig<const T: usize> {}
 
 impl poseidon::Config<Scalar, 12> for GoldilocksConfig<12> {
-    fn num_full_rounds() -> usize {
+    fn num_full_rounds_per_side() -> usize {
         4
     }
 
@@ -33,7 +33,7 @@ impl poseidon::Config<Scalar, 12> for GoldilocksConfig<12> {
 }
 
 impl poseidon::Config<Scalar, 16> for GoldilocksConfig<16> {
-    fn num_full_rounds() -> usize {
+    fn num_full_rounds_per_side() -> usize {
         4
     }
 
