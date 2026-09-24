@@ -44,7 +44,7 @@ impl<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> Encrypto
         Self {
             nonce,
             state: get_initial_state::<F, T, R>(key, nonce),
-            _data: PhantomData::default(),
+            _data: PhantomData,
         }
     }
 
@@ -98,7 +98,7 @@ impl<C: Config<F, T>, F: PrimeField256, const T: usize, const R: usize> Decrypto
         assert_eq!(R, T - 1);
         Self {
             state: get_initial_state::<F, T, R>(key, nonce),
-            _data: PhantomData::default(),
+            _data: PhantomData,
         }
     }
 

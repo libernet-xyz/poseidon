@@ -27,17 +27,18 @@ configurations support T=12 and T=16; the KoalaBear configurations support T=24 
 ## Usage
 
 The following example functions instantiate Poseidon with T=3 and T=4 respectively, squeezing a
-single element from the output. Both use a single element for capacity.
+single element from the output. Both use a single element for capacity, initialized with a domain
+separator tag (the `dst` parameter).
 
 ```rs
 use starkom_bluesky::Scalar;
 use starkom_poseidon;
 
-fn hash_t3(inputs: impl IntoIterator<Item = Scalar>) -> Scalar {
-    starkom_poseidon::hash::<starkom_poseidon::bluesky::BlueSkyConfig3, Scalar, 3, 2, 1>(inputs)[0]
+fn hash_t3(dst: Scalar, inputs: impl IntoIterator<Item = Scalar>) -> Scalar {
+    starkom_poseidon::hash::<starkom_poseidon::bluesky::BlueSkyConfig3, Scalar, 3, 2, 1>([dst], inputs)[0]
 }
 
-fn hash_t4(inputs: impl IntoIterator<Item = Scalar>) -> Scalar {
-    starkom_poseidon::hash::<starkom_poseidon::bluesky::BlueSkyConfig4, Scalar, 4, 3, 1>(inputs)[0]
+fn hash_t4(dst: Scalar, inputs: impl IntoIterator<Item = Scalar>) -> Scalar {
+    starkom_poseidon::hash::<starkom_poseidon::bluesky::BlueSkyConfig4, Scalar, 4, 3, 1>([dst], inputs)[0]
 }
 ```
