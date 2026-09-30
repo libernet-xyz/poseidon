@@ -16,8 +16,9 @@ The implementation is generic and works on any prime field.
 Configurations for the BLS12-381, Goldilocks, KoalaBear,
 [BlueSky](https://crates.io/crates/starkom-bluesky), and
 [Schraderbrau](https://crates.io/crates/starkom-schraderbrau) prime fields are provided. The
-BLS12-381, BlueSky, and Schraderbrau configurations support T=3 and T=4; the Goldilocks
-configurations support T=12 and T=16; the KoalaBear configurations support T=24 and T=32.
+BLS12-381, BlueSky, and Schraderbrau configurations support T=3, T=4, and T=5; the Goldilocks
+configurations support T=12, T=16, and T=20; the KoalaBear configurations support T=24, T=32, and
+T=40.
 
 > [!NOTE]
 > All predefined configurations are gated behind feature flags to avoid including all constants in
