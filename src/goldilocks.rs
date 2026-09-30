@@ -66,11 +66,44 @@ impl poseidon::Config<Scalar, 16> for GoldilocksConfig<16> {
     }
 }
 
+impl poseidon::Config<Scalar, 20> for GoldilocksConfig<20> {
+    fn num_full_rounds_per_side() -> usize {
+        4
+    }
+
+    fn num_partial_rounds() -> usize {
+        22
+    }
+
+    fn alpha() -> usize {
+        7
+    }
+
+    fn get_round_constants() -> &'static [Scalar] {
+        static ROUND_CONSTANTS: LazyLock<[Scalar; 600]> = LazyLock::new(|| {
+            let bytes = include_bytes!("../params/goldilocks/arc_t20.bin");
+            decode_constants::<Scalar, 600>(bytes)
+        });
+        &*ROUND_CONSTANTS
+    }
+
+    fn get_mds_matrix() -> &'static [Scalar] {
+        static MATRIX: LazyLock<[Scalar; 400]> = LazyLock::new(|| {
+            let bytes = include_bytes!("../params/goldilocks/mds_t20.bin");
+            decode_constants::<Scalar, 400>(bytes)
+        });
+        &*MATRIX
+    }
+}
+
 /// Poseidon configuration for Goldilocks with T=12.
 pub type GoldilocksConfig12 = GoldilocksConfig<12>;
 
 /// Poseidon configuration for Goldilocks with T=16.
 pub type GoldilocksConfig16 = GoldilocksConfig<16>;
+
+/// Poseidon configuration for Goldilocks with T=20.
+pub type GoldilocksConfig20 = GoldilocksConfig<20>;
 
 #[cfg(test)]
 mod tests {
@@ -94,6 +127,14 @@ mod tests {
 
     fn hash_t16_0(dst: [Scalar; 4], inputs: impl IntoIterator<Item = Scalar>) -> Scalar {
         poseidon::hash0::<GoldilocksConfig16, Scalar, 16, 12, 4>(dst, inputs)
+    }
+
+    fn hash_t20(dst: [Scalar; 4], inputs: impl IntoIterator<Item = Scalar>) -> [Scalar; 16] {
+        poseidon::hash::<GoldilocksConfig20, Scalar, 20, 16, 4>(dst, inputs)
+    }
+
+    fn hash_t20_0(dst: [Scalar; 4], inputs: impl IntoIterator<Item = Scalar>) -> Scalar {
+        poseidon::hash0::<GoldilocksConfig20, Scalar, 20, 16, 4>(dst, inputs)
     }
 
     #[test]
@@ -168,6 +209,56 @@ mod tests {
                 from_const(0x6c514f906998c65d),
                 from_const(0xc447035d8d71952b),
                 from_const(0x591863454267826f),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_permutation_t20() {
+        assert_eq!(
+            poseidon::permutation::<GoldilocksConfig20, Scalar, 20>([
+                from_const(0),
+                from_const(1),
+                from_const(2),
+                from_const(3),
+                from_const(4),
+                from_const(5),
+                from_const(6),
+                from_const(7),
+                from_const(8),
+                from_const(9),
+                from_const(10),
+                from_const(11),
+                from_const(12),
+                from_const(13),
+                from_const(14),
+                from_const(15),
+                from_const(16),
+                from_const(17),
+                from_const(18),
+                from_const(19),
+            ]),
+            [
+                from_const(0x082a507bd86740b3),
+                from_const(0xcae7f445392dd5fd),
+                from_const(0x7e09cdb1244aebae),
+                from_const(0x3456ec275aa454e3),
+                from_const(0x865849dd9341049f),
+                from_const(0xee828d5114d9c459),
+                from_const(0x2c41d4f929d60a89),
+                from_const(0x435a9c2ac9a32e09),
+                from_const(0xd40ef139175f4295),
+                from_const(0xaf69f572ad791e78),
+                from_const(0x9e9536888849971e),
+                from_const(0xe84df78c71ce6cf8),
+                from_const(0x6530aa5ab6cc8ea4),
+                from_const(0xb57c19c935de4546),
+                from_const(0xdb6a1ca8597892b9),
+                from_const(0x05956742fd5f6238),
+                from_const(0xbfc99dd5cc2cf88b),
+                from_const(0xdf6582e2c16b673b),
+                from_const(0xe96936cf01d8ca52),
+                from_const(0x87b21656a35c348d),
             ]
         );
     }
@@ -297,6 +388,97 @@ mod tests {
                 from_const(0xc36a09c2dc25cd6e),
                 from_const(0xcbda3d58f7cf85f4),
                 from_const(0x34cb1d63c35596cf),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_capacity_dst_t20() {
+        assert_eq!(
+            hash_t20(
+                DST,
+                [
+                    from_const(0),
+                    from_const(1),
+                    from_const(2),
+                    from_const(3),
+                    from_const(4),
+                    from_const(5),
+                    from_const(6),
+                    from_const(7),
+                    from_const(8),
+                    from_const(9),
+                    from_const(10),
+                    from_const(11),
+                    from_const(12),
+                    from_const(13),
+                    from_const(14),
+                    from_const(15),
+                ]
+            ),
+            [
+                from_const(0xe9bc8f5856d8020f),
+                from_const(0x2926b3f41dbc0904),
+                from_const(0xf3865d23d15dbffa),
+                from_const(0x3411a90a6c3ffcc7),
+                from_const(0x693e7dcc81462529),
+                from_const(0x0b66e3b30014f3a5),
+                from_const(0x63bc2540ceb6e68d),
+                from_const(0x540b66853c62c9e8),
+                from_const(0xa4f9728000273c70),
+                from_const(0xc57933c69abbf5a9),
+                from_const(0x9ab6fdb2d805bd59),
+                from_const(0x7a6eed835545aaf2),
+                from_const(0x74d9df4b6f397c63),
+                from_const(0xbd7ff160d047e569),
+                from_const(0x8e59c41861615d1e),
+                from_const(0x7d26431a8b73f106),
+            ]
+        );
+        assert_eq!(
+            hash_t20(
+                [
+                    from_const(16),
+                    from_const(17),
+                    from_const(18),
+                    from_const(19)
+                ],
+                [
+                    from_const(0),
+                    from_const(1),
+                    from_const(2),
+                    from_const(3),
+                    from_const(4),
+                    from_const(5),
+                    from_const(6),
+                    from_const(7),
+                    from_const(8),
+                    from_const(9),
+                    from_const(10),
+                    from_const(11),
+                    from_const(12),
+                    from_const(13),
+                    from_const(14),
+                    from_const(15),
+                ]
+            ),
+            [
+                from_const(0x082a507bd86740b3),
+                from_const(0xcae7f445392dd5fd),
+                from_const(0x7e09cdb1244aebae),
+                from_const(0x3456ec275aa454e3),
+                from_const(0x865849dd9341049f),
+                from_const(0xee828d5114d9c459),
+                from_const(0x2c41d4f929d60a89),
+                from_const(0x435a9c2ac9a32e09),
+                from_const(0xd40ef139175f4295),
+                from_const(0xaf69f572ad791e78),
+                from_const(0x9e9536888849971e),
+                from_const(0xe84df78c71ce6cf8),
+                from_const(0x6530aa5ab6cc8ea4),
+                from_const(0xb57c19c935de4546),
+                from_const(0xdb6a1ca8597892b9),
+                from_const(0x05956742fd5f6238),
             ]
         );
     }
@@ -952,6 +1134,435 @@ mod tests {
                 ]
             ),
             from_const(0x47af4b6d88d07ed1)
+        );
+    }
+
+    #[test]
+    fn test_hash_t20_1() {
+        assert_eq!(
+            hash_t20(DST, [from_const(42),]),
+            [
+                from_const(0x4306c96f219fb340),
+                from_const(0x61ce1a693d3f14d0),
+                from_const(0xc11834730ea001c9),
+                from_const(0x96023c752c07137c),
+                from_const(0x581597e0f9faa28d),
+                from_const(0x7dbbd1ea94384ced),
+                from_const(0x7a88e951a19f61c5),
+                from_const(0x06d97863b871b14d),
+                from_const(0x97bea12cff2211b9),
+                from_const(0xe50c051da9604a87),
+                from_const(0xb60cafe5a65ae4ba),
+                from_const(0xc615f84a810ce4d0),
+                from_const(0x7e42d4b1a0b3ef4c),
+                from_const(0x2d606bce8ccce338),
+                from_const(0x1d56c84c2cb927af),
+                from_const(0xe05dfef6d252b171),
+            ]
+        );
+        assert_eq!(
+            hash_t20_0(DST, [from_const(42),]),
+            from_const(0x4306c96f219fb340)
+        );
+    }
+
+    #[test]
+    fn test_hash_t20_2() {
+        assert_eq!(
+            hash_t20(DST, [from_const(12), from_const(34),]),
+            [
+                from_const(0x57170c401eca6fdb),
+                from_const(0xdbcce6820fe1cf71),
+                from_const(0x28c60dee25b6330d),
+                from_const(0x961c268b99502ae4),
+                from_const(0x8c620b074b86d732),
+                from_const(0x643d552634d7730c),
+                from_const(0x4d9f004deab4458a),
+                from_const(0x6e4ecfdd3f0eacbb),
+                from_const(0xbdcb060144a45c85),
+                from_const(0xdbf138b0a86d024d),
+                from_const(0x59ca31c2002fac11),
+                from_const(0x2423cf343124187b),
+                from_const(0xc50e1bb90e5ddce3),
+                from_const(0x30d67ee42b36037e),
+                from_const(0xbc7d543c3a304c4c),
+                from_const(0xd4bacb3f89fb023a),
+            ]
+        );
+        assert_eq!(
+            hash_t20_0(DST, [from_const(12), from_const(34),]),
+            from_const(0x57170c401eca6fdb)
+        );
+    }
+
+    #[test]
+    fn test_hash_t20_16() {
+        assert_eq!(
+            hash_t20(
+                DST,
+                [
+                    from_const(0),
+                    from_const(1),
+                    from_const(2),
+                    from_const(3),
+                    from_const(4),
+                    from_const(5),
+                    from_const(6),
+                    from_const(7),
+                    from_const(8),
+                    from_const(9),
+                    from_const(10),
+                    from_const(11),
+                    from_const(12),
+                    from_const(13),
+                    from_const(14),
+                    from_const(15),
+                ]
+            ),
+            [
+                from_const(0xe9bc8f5856d8020f),
+                from_const(0x2926b3f41dbc0904),
+                from_const(0xf3865d23d15dbffa),
+                from_const(0x3411a90a6c3ffcc7),
+                from_const(0x693e7dcc81462529),
+                from_const(0x0b66e3b30014f3a5),
+                from_const(0x63bc2540ceb6e68d),
+                from_const(0x540b66853c62c9e8),
+                from_const(0xa4f9728000273c70),
+                from_const(0xc57933c69abbf5a9),
+                from_const(0x9ab6fdb2d805bd59),
+                from_const(0x7a6eed835545aaf2),
+                from_const(0x74d9df4b6f397c63),
+                from_const(0xbd7ff160d047e569),
+                from_const(0x8e59c41861615d1e),
+                from_const(0x7d26431a8b73f106),
+            ]
+        );
+        assert_eq!(
+            hash_t20_0(
+                DST,
+                [
+                    from_const(0),
+                    from_const(1),
+                    from_const(2),
+                    from_const(3),
+                    from_const(4),
+                    from_const(5),
+                    from_const(6),
+                    from_const(7),
+                    from_const(8),
+                    from_const(9),
+                    from_const(10),
+                    from_const(11),
+                    from_const(12),
+                    from_const(13),
+                    from_const(14),
+                    from_const(15),
+                ]
+            ),
+            from_const(0xe9bc8f5856d8020f)
+        );
+    }
+
+    #[test]
+    fn test_hash_t20_17() {
+        assert_eq!(
+            hash_t20(
+                DST,
+                [
+                    from_const(0),
+                    from_const(1),
+                    from_const(2),
+                    from_const(3),
+                    from_const(4),
+                    from_const(5),
+                    from_const(6),
+                    from_const(7),
+                    from_const(8),
+                    from_const(9),
+                    from_const(10),
+                    from_const(11),
+                    from_const(12),
+                    from_const(13),
+                    from_const(14),
+                    from_const(15),
+                    from_const(16),
+                ]
+            ),
+            [
+                from_const(0x0c0c89e5d99dde55),
+                from_const(0xfb63d03172182dbb),
+                from_const(0xec99a156eef77038),
+                from_const(0xd5118deef72e204c),
+                from_const(0xcd6c56c7477c7570),
+                from_const(0x3bce7c6233435873),
+                from_const(0xc5e86ffc65126d11),
+                from_const(0x31fa013c96e51a07),
+                from_const(0x17af574b6cb7ebdc),
+                from_const(0x864cc78596f9c9c8),
+                from_const(0xe8ac00692e9323ed),
+                from_const(0x69b9e25d2d876237),
+                from_const(0xa4a3efa01f6da959),
+                from_const(0xb6af43d128f3a0be),
+                from_const(0x603b4417454dc4c0),
+                from_const(0x315510d0a76982f8),
+            ]
+        );
+        assert_eq!(
+            hash_t20_0(
+                DST,
+                [
+                    from_const(0),
+                    from_const(1),
+                    from_const(2),
+                    from_const(3),
+                    from_const(4),
+                    from_const(5),
+                    from_const(6),
+                    from_const(7),
+                    from_const(8),
+                    from_const(9),
+                    from_const(10),
+                    from_const(11),
+                    from_const(12),
+                    from_const(13),
+                    from_const(14),
+                    from_const(15),
+                    from_const(16),
+                ]
+            ),
+            from_const(0x0c0c89e5d99dde55)
+        );
+    }
+
+    #[test]
+    fn test_hash_t20_19() {
+        assert_eq!(
+            hash_t20(
+                DST,
+                [
+                    from_const(0),
+                    from_const(1),
+                    from_const(2),
+                    from_const(3),
+                    from_const(4),
+                    from_const(5),
+                    from_const(6),
+                    from_const(7),
+                    from_const(8),
+                    from_const(9),
+                    from_const(10),
+                    from_const(11),
+                    from_const(12),
+                    from_const(13),
+                    from_const(14),
+                    from_const(15),
+                    from_const(16),
+                    from_const(17),
+                    from_const(18),
+                ]
+            ),
+            [
+                from_const(0x3525e331b2a1d601),
+                from_const(0x7bf980252ca12e3c),
+                from_const(0xc4ce3294929ac844),
+                from_const(0x455a4f853ff7633c),
+                from_const(0x0179693cd74bd118),
+                from_const(0x662c9925b678199a),
+                from_const(0x7b849225c66671e3),
+                from_const(0x9f4901e4708d81f1),
+                from_const(0x6e1671750bf0d8c2),
+                from_const(0x46a3b0417d8d3e79),
+                from_const(0x474104405925b061),
+                from_const(0x2186cd5f7e024a2f),
+                from_const(0x86c44d0aa24381ea),
+                from_const(0x37f990d76c54d823),
+                from_const(0x9812d015a710f385),
+                from_const(0x73d1ab35c64220cc),
+            ]
+        );
+        assert_eq!(
+            hash_t20_0(
+                DST,
+                [
+                    from_const(0),
+                    from_const(1),
+                    from_const(2),
+                    from_const(3),
+                    from_const(4),
+                    from_const(5),
+                    from_const(6),
+                    from_const(7),
+                    from_const(8),
+                    from_const(9),
+                    from_const(10),
+                    from_const(11),
+                    from_const(12),
+                    from_const(13),
+                    from_const(14),
+                    from_const(15),
+                    from_const(16),
+                    from_const(17),
+                    from_const(18),
+                ]
+            ),
+            from_const(0x3525e331b2a1d601)
+        );
+    }
+
+    #[test]
+    fn test_hash_t20_20() {
+        assert_eq!(
+            hash_t20(
+                DST,
+                [
+                    from_const(0),
+                    from_const(1),
+                    from_const(2),
+                    from_const(3),
+                    from_const(4),
+                    from_const(5),
+                    from_const(6),
+                    from_const(7),
+                    from_const(8),
+                    from_const(9),
+                    from_const(10),
+                    from_const(11),
+                    from_const(12),
+                    from_const(13),
+                    from_const(14),
+                    from_const(15),
+                    from_const(16),
+                    from_const(17),
+                    from_const(18),
+                    from_const(19),
+                ]
+            ),
+            [
+                from_const(0xc3b44b70ef821010),
+                from_const(0x1a255be00afbb9e4),
+                from_const(0xec70f5b1e605c8e4),
+                from_const(0xbbb4a81dfd1182c0),
+                from_const(0x04fe6ed83d75dfff),
+                from_const(0xbaadb5a73fa3ebf1),
+                from_const(0x5e494632b95d1e50),
+                from_const(0x9e73b3e17b0abf35),
+                from_const(0xe21376e1e050f228),
+                from_const(0xb46f7fc958514143),
+                from_const(0xa2065c7977bd1b51),
+                from_const(0xd28186c822bffaaf),
+                from_const(0x48efaa06cb279210),
+                from_const(0x611895aedc4a5197),
+                from_const(0x546878e014fd357a),
+                from_const(0x4a13610b629b11a1),
+            ]
+        );
+        assert_eq!(
+            hash_t20_0(
+                DST,
+                [
+                    from_const(0),
+                    from_const(1),
+                    from_const(2),
+                    from_const(3),
+                    from_const(4),
+                    from_const(5),
+                    from_const(6),
+                    from_const(7),
+                    from_const(8),
+                    from_const(9),
+                    from_const(10),
+                    from_const(11),
+                    from_const(12),
+                    from_const(13),
+                    from_const(14),
+                    from_const(15),
+                    from_const(16),
+                    from_const(17),
+                    from_const(18),
+                    from_const(19),
+                ]
+            ),
+            from_const(0xc3b44b70ef821010)
+        );
+    }
+
+    #[test]
+    fn test_hash_t20_21() {
+        assert_eq!(
+            hash_t20(
+                DST,
+                [
+                    from_const(0),
+                    from_const(1),
+                    from_const(2),
+                    from_const(3),
+                    from_const(4),
+                    from_const(5),
+                    from_const(6),
+                    from_const(7),
+                    from_const(8),
+                    from_const(9),
+                    from_const(10),
+                    from_const(11),
+                    from_const(12),
+                    from_const(13),
+                    from_const(14),
+                    from_const(15),
+                    from_const(16),
+                    from_const(17),
+                    from_const(18),
+                    from_const(19),
+                    from_const(20),
+                ]
+            ),
+            [
+                from_const(0x3b8266259e3e7449),
+                from_const(0xf5f33748ccd63f3c),
+                from_const(0xdc9090be36e5e71a),
+                from_const(0xf891209a8c110002),
+                from_const(0x1725f04c26c7631e),
+                from_const(0x79c7b99fb063eadc),
+                from_const(0x0240fa4bf5835491),
+                from_const(0xb9a2f4e8c1ba9009),
+                from_const(0x44cc401b7ff78d9a),
+                from_const(0x80d201159ae51074),
+                from_const(0xf06b695655e17e5a),
+                from_const(0x329c1619ea3b99c1),
+                from_const(0x3d282593eb171154),
+                from_const(0x72c0783e4483bb30),
+                from_const(0xa8533ba6334fa619),
+                from_const(0x82ea678bb33c4cf2),
+            ]
+        );
+        assert_eq!(
+            hash_t20_0(
+                DST,
+                [
+                    from_const(0),
+                    from_const(1),
+                    from_const(2),
+                    from_const(3),
+                    from_const(4),
+                    from_const(5),
+                    from_const(6),
+                    from_const(7),
+                    from_const(8),
+                    from_const(9),
+                    from_const(10),
+                    from_const(11),
+                    from_const(12),
+                    from_const(13),
+                    from_const(14),
+                    from_const(15),
+                    from_const(16),
+                    from_const(17),
+                    from_const(18),
+                    from_const(19),
+                    from_const(20),
+                ]
+            ),
+            from_const(0x3b8266259e3e7449)
         );
     }
 }

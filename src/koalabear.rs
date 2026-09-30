@@ -66,11 +66,44 @@ impl poseidon::Config<Scalar, 32> for KoalaBearConfig<32> {
     }
 }
 
+impl poseidon::Config<Scalar, 40> for KoalaBearConfig<40> {
+    fn num_full_rounds_per_side() -> usize {
+        4
+    }
+
+    fn num_partial_rounds() -> usize {
+        38
+    }
+
+    fn alpha() -> usize {
+        3
+    }
+
+    fn get_round_constants() -> &'static [Scalar] {
+        static ROUND_CONSTANTS: LazyLock<[Scalar; 1840]> = LazyLock::new(|| {
+            let bytes = include_bytes!("../params/koalabear/arc_t40.bin");
+            decode_constants::<Scalar, 1840>(bytes)
+        });
+        &*ROUND_CONSTANTS
+    }
+
+    fn get_mds_matrix() -> &'static [Scalar] {
+        static MATRIX: LazyLock<[Scalar; 1600]> = LazyLock::new(|| {
+            let bytes = include_bytes!("../params/koalabear/mds_t40.bin");
+            decode_constants::<Scalar, 1600>(bytes)
+        });
+        &*MATRIX
+    }
+}
+
 /// Poseidon configuration for KoalaBear with T=24.
 pub type KoalaBearConfig24 = KoalaBearConfig<24>;
 
 /// Poseidon configuration for KoalaBear with T=32.
 pub type KoalaBearConfig32 = KoalaBearConfig<32>;
+
+/// Poseidon configuration for KoalaBear with T=40.
+pub type KoalaBearConfig40 = KoalaBearConfig<40>;
 
 #[cfg(test)]
 mod tests {
@@ -94,6 +127,14 @@ mod tests {
 
     fn hash_t32_0(dst: [Scalar; 8], inputs: impl IntoIterator<Item = Scalar>) -> Scalar {
         poseidon::hash0::<KoalaBearConfig32, Scalar, 32, 24, 8>(dst, inputs)
+    }
+
+    fn hash_t40(dst: [Scalar; 8], inputs: impl IntoIterator<Item = Scalar>) -> [Scalar; 32] {
+        poseidon::hash::<KoalaBearConfig40, Scalar, 40, 32, 8>(dst, inputs)
+    }
+
+    fn hash_t40_0(dst: [Scalar; 8], inputs: impl IntoIterator<Item = Scalar>) -> Scalar {
+        poseidon::hash0::<KoalaBearConfig40, Scalar, 40, 32, 8>(dst, inputs)
     }
 
     fn sequential_inputs<const N: usize>() -> [Scalar; N] {
@@ -228,6 +269,55 @@ mod tests {
                 from_const(0x6cc4f791),
                 from_const(0x77e872fe),
                 from_const(0x6112c017),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_permutation_t40() {
+        assert_eq!(
+            poseidon::permutation::<KoalaBearConfig40, Scalar, 40>(sequential_inputs::<40>()),
+            [
+                from_const(0x1885f836),
+                from_const(0x07698f9c),
+                from_const(0x12fe7371),
+                from_const(0x0b522da1),
+                from_const(0x763dd418),
+                from_const(0x7caf7bfb),
+                from_const(0x09459508),
+                from_const(0x03aadccb),
+                from_const(0x22430bc5),
+                from_const(0x2d934a4d),
+                from_const(0x083c939f),
+                from_const(0x01cbb222),
+                from_const(0x6e273814),
+                from_const(0x18319f5e),
+                from_const(0x61c30523),
+                from_const(0x596f1085),
+                from_const(0x325b24ba),
+                from_const(0x70ac050e),
+                from_const(0x007c2dd0),
+                from_const(0x7ef0794a),
+                from_const(0x2a9a0cce),
+                from_const(0x2c7e9e22),
+                from_const(0x3611b8c7),
+                from_const(0x40842ab8),
+                from_const(0x0ba6a8b0),
+                from_const(0x228febc4),
+                from_const(0x5b8045bc),
+                from_const(0x603a133f),
+                from_const(0x2c31e2bb),
+                from_const(0x055c27c4),
+                from_const(0x664c03b8),
+                from_const(0x2037b3ee),
+                from_const(0x55713355),
+                from_const(0x0cde8292),
+                from_const(0x5b2dd2fb),
+                from_const(0x3be682a6),
+                from_const(0x1ef9ec00),
+                from_const(0x327d8eaa),
+                from_const(0x3a23d724),
+                from_const(0x7be639ea),
             ]
         );
     }
@@ -450,6 +540,87 @@ mod tests {
                 from_const(0x4e9c5eb7),
                 from_const(0x669108c9),
                 from_const(0x051bc5f5),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_capacity_dst_t40() {
+        assert_eq!(
+            hash_t40(DST, sequential_inputs::<32>()),
+            [
+                from_const(0x45cb2dac),
+                from_const(0x66bf4fe1),
+                from_const(0x40090717),
+                from_const(0x3c7ac696),
+                from_const(0x58759d40),
+                from_const(0x02d418f3),
+                from_const(0x17b80402),
+                from_const(0x72a50968),
+                from_const(0x4d34902a),
+                from_const(0x27b35fd9),
+                from_const(0x2354ae8d),
+                from_const(0x2ccd2a5d),
+                from_const(0x232c5eda),
+                from_const(0x7c2061fd),
+                from_const(0x21c3ecd1),
+                from_const(0x6f751e38),
+                from_const(0x3c150766),
+                from_const(0x6dc7623a),
+                from_const(0x30a564aa),
+                from_const(0x19c23b9f),
+                from_const(0x360f77ba),
+                from_const(0x67869e71),
+                from_const(0x326b886b),
+                from_const(0x24fbe771),
+                from_const(0x26a1acae),
+                from_const(0x3b7f9e84),
+                from_const(0x35991525),
+                from_const(0x2f5089a0),
+                from_const(0x6481c48d),
+                from_const(0x518a1a28),
+                from_const(0x072760d4),
+                from_const(0x5c097cf4),
+            ]
+        );
+        assert_eq!(
+            hash_t40(
+                std::array::from_fn(|i| from_const(32 + i as u32)),
+                sequential_inputs::<32>()
+            ),
+            [
+                from_const(0x1885f836),
+                from_const(0x07698f9c),
+                from_const(0x12fe7371),
+                from_const(0x0b522da1),
+                from_const(0x763dd418),
+                from_const(0x7caf7bfb),
+                from_const(0x09459508),
+                from_const(0x03aadccb),
+                from_const(0x22430bc5),
+                from_const(0x2d934a4d),
+                from_const(0x083c939f),
+                from_const(0x01cbb222),
+                from_const(0x6e273814),
+                from_const(0x18319f5e),
+                from_const(0x61c30523),
+                from_const(0x596f1085),
+                from_const(0x325b24ba),
+                from_const(0x70ac050e),
+                from_const(0x007c2dd0),
+                from_const(0x7ef0794a),
+                from_const(0x2a9a0cce),
+                from_const(0x2c7e9e22),
+                from_const(0x3611b8c7),
+                from_const(0x40842ab8),
+                from_const(0x0ba6a8b0),
+                from_const(0x228febc4),
+                from_const(0x5b8045bc),
+                from_const(0x603a133f),
+                from_const(0x2c31e2bb),
+                from_const(0x055c27c4),
+                from_const(0x664c03b8),
+                from_const(0x2037b3ee),
             ]
         );
     }
@@ -907,6 +1078,318 @@ mod tests {
         assert_eq!(
             hash_t32_0(DST, sequential_inputs::<33>()),
             from_const(0x41a34e14)
+        );
+    }
+
+    #[test]
+    fn test_hash_t40_1() {
+        assert_eq!(
+            hash_t40(DST, [from_const(42)]),
+            [
+                from_const(0x1e1a0e27),
+                from_const(0x75c17550),
+                from_const(0x0bd455a6),
+                from_const(0x353beb27),
+                from_const(0x4c392bad),
+                from_const(0x1c061064),
+                from_const(0x591ab01f),
+                from_const(0x51d1b053),
+                from_const(0x4f6bb750),
+                from_const(0x39185c7f),
+                from_const(0x31a59293),
+                from_const(0x25e89ba9),
+                from_const(0x447416ab),
+                from_const(0x0d68e1c4),
+                from_const(0x2a4a894b),
+                from_const(0x1d335201),
+                from_const(0x0febc6b6),
+                from_const(0x569fe3cb),
+                from_const(0x75c6bbc3),
+                from_const(0x0c6088c7),
+                from_const(0x56cb597b),
+                from_const(0x519804b6),
+                from_const(0x31ca978a),
+                from_const(0x24a9ee94),
+                from_const(0x68442ed6),
+                from_const(0x0bee2618),
+                from_const(0x167e7879),
+                from_const(0x0bdb3375),
+                from_const(0x17817a29),
+                from_const(0x7970d9a6),
+                from_const(0x6c3eac12),
+                from_const(0x35734882),
+            ]
+        );
+        assert_eq!(hash_t40_0(DST, [from_const(42)]), from_const(0x1e1a0e27));
+    }
+
+    #[test]
+    fn test_hash_t40_2() {
+        assert_eq!(
+            hash_t40(DST, [from_const(12), from_const(34)]),
+            [
+                from_const(0x5feab079),
+                from_const(0x1c1798e0),
+                from_const(0x0b8a4bd2),
+                from_const(0x595ea079),
+                from_const(0x5903f873),
+                from_const(0x4a3668b3),
+                from_const(0x1bf83492),
+                from_const(0x244e35bd),
+                from_const(0x2b823be5),
+                from_const(0x60789b19),
+                from_const(0x29012b2e),
+                from_const(0x07e9f565),
+                from_const(0x78da8572),
+                from_const(0x616d5154),
+                from_const(0x7bf7798a),
+                from_const(0x2fbc6ff6),
+                from_const(0x4e629021),
+                from_const(0x338082ee),
+                from_const(0x6e4d26eb),
+                from_const(0x78bd8f95),
+                from_const(0x5bf74bc0),
+                from_const(0x1752a894),
+                from_const(0x02b097d3),
+                from_const(0x5d80be9a),
+                from_const(0x60dea498),
+                from_const(0x5a2e2ee6),
+                from_const(0x15e573c1),
+                from_const(0x6155b781),
+                from_const(0x3207f4a0),
+                from_const(0x40fc9976),
+                from_const(0x15ad8442),
+                from_const(0x3a75107b),
+            ]
+        );
+        assert_eq!(
+            hash_t40_0(DST, [from_const(12), from_const(34)]),
+            from_const(0x5feab079)
+        );
+    }
+
+    #[test]
+    fn test_hash_t40_32() {
+        assert_eq!(
+            hash_t40(DST, sequential_inputs::<32>()),
+            [
+                from_const(0x45cb2dac),
+                from_const(0x66bf4fe1),
+                from_const(0x40090717),
+                from_const(0x3c7ac696),
+                from_const(0x58759d40),
+                from_const(0x02d418f3),
+                from_const(0x17b80402),
+                from_const(0x72a50968),
+                from_const(0x4d34902a),
+                from_const(0x27b35fd9),
+                from_const(0x2354ae8d),
+                from_const(0x2ccd2a5d),
+                from_const(0x232c5eda),
+                from_const(0x7c2061fd),
+                from_const(0x21c3ecd1),
+                from_const(0x6f751e38),
+                from_const(0x3c150766),
+                from_const(0x6dc7623a),
+                from_const(0x30a564aa),
+                from_const(0x19c23b9f),
+                from_const(0x360f77ba),
+                from_const(0x67869e71),
+                from_const(0x326b886b),
+                from_const(0x24fbe771),
+                from_const(0x26a1acae),
+                from_const(0x3b7f9e84),
+                from_const(0x35991525),
+                from_const(0x2f5089a0),
+                from_const(0x6481c48d),
+                from_const(0x518a1a28),
+                from_const(0x072760d4),
+                from_const(0x5c097cf4),
+            ]
+        );
+        assert_eq!(
+            hash_t40_0(DST, sequential_inputs::<32>()),
+            from_const(0x45cb2dac)
+        );
+    }
+
+    #[test]
+    fn test_hash_t40_33() {
+        assert_eq!(
+            hash_t40(DST, sequential_inputs::<33>()),
+            [
+                from_const(0x44a49d74),
+                from_const(0x7ea95a12),
+                from_const(0x0756eaee),
+                from_const(0x1d274118),
+                from_const(0x2b1a875c),
+                from_const(0x02082221),
+                from_const(0x115b6637),
+                from_const(0x4a38061d),
+                from_const(0x2554fba4),
+                from_const(0x6679c343),
+                from_const(0x5b47846b),
+                from_const(0x7ebce96d),
+                from_const(0x6f95ecb1),
+                from_const(0x78e4da32),
+                from_const(0x753f1552),
+                from_const(0x1c2d8fa5),
+                from_const(0x4fa73c59),
+                from_const(0x78a44712),
+                from_const(0x3d6fa255),
+                from_const(0x76fe02ca),
+                from_const(0x6dbdfd60),
+                from_const(0x7e3e8e28),
+                from_const(0x0b949825),
+                from_const(0x07edf50c),
+                from_const(0x6149a3ca),
+                from_const(0x3280a266),
+                from_const(0x2b311889),
+                from_const(0x2682c6af),
+                from_const(0x7295aec9),
+                from_const(0x3b8c3b5f),
+                from_const(0x0f0e000c),
+                from_const(0x0b6384a0),
+            ]
+        );
+        assert_eq!(
+            hash_t40_0(DST, sequential_inputs::<33>()),
+            from_const(0x44a49d74)
+        );
+    }
+
+    #[test]
+    fn test_hash_t40_39() {
+        assert_eq!(
+            hash_t40(DST, sequential_inputs::<39>()),
+            [
+                from_const(0x1d41c30c),
+                from_const(0x6c116182),
+                from_const(0x57fa26fa),
+                from_const(0x515a5b33),
+                from_const(0x1406ba88),
+                from_const(0x0320fc2d),
+                from_const(0x56871139),
+                from_const(0x6579edad),
+                from_const(0x517440a4),
+                from_const(0x7ef669c8),
+                from_const(0x50274f76),
+                from_const(0x092408ce),
+                from_const(0x2fd45dbd),
+                from_const(0x683c34b8),
+                from_const(0x6f4f735e),
+                from_const(0x6c1d23ff),
+                from_const(0x17f05cb2),
+                from_const(0x0941df7e),
+                from_const(0x72b513ee),
+                from_const(0x4bbee87e),
+                from_const(0x21858131),
+                from_const(0x704ce007),
+                from_const(0x26e943cc),
+                from_const(0x6f47bbde),
+                from_const(0x38514267),
+                from_const(0x0d4fff69),
+                from_const(0x4f583d47),
+                from_const(0x102404b3),
+                from_const(0x3ec1965e),
+                from_const(0x0c3afca7),
+                from_const(0x62088740),
+                from_const(0x5c36fa57),
+            ]
+        );
+        assert_eq!(
+            hash_t40_0(DST, sequential_inputs::<39>()),
+            from_const(0x1d41c30c)
+        );
+    }
+
+    #[test]
+    fn test_hash_t40_40() {
+        assert_eq!(
+            hash_t40(DST, sequential_inputs::<40>()),
+            [
+                from_const(0x17c85b48),
+                from_const(0x08e373f7),
+                from_const(0x0171e923),
+                from_const(0x14a6760f),
+                from_const(0x66090240),
+                from_const(0x79be3bf4),
+                from_const(0x3d9a718b),
+                from_const(0x2703358d),
+                from_const(0x54df6975),
+                from_const(0x2083c41c),
+                from_const(0x1ec35dc1),
+                from_const(0x3bcd1047),
+                from_const(0x04a9956a),
+                from_const(0x19af1658),
+                from_const(0x3d4ceadd),
+                from_const(0x1b6c7f0d),
+                from_const(0x370aa7f9),
+                from_const(0x075d8f81),
+                from_const(0x5725a3f2),
+                from_const(0x5794c1a8),
+                from_const(0x1ec59d11),
+                from_const(0x356480a8),
+                from_const(0x12a7c42e),
+                from_const(0x5d029393),
+                from_const(0x132b0940),
+                from_const(0x7d3e51ea),
+                from_const(0x3e76c7ee),
+                from_const(0x38c85e1b),
+                from_const(0x50828377),
+                from_const(0x0daf2100),
+                from_const(0x4b550c0e),
+                from_const(0x7de728a3),
+            ]
+        );
+        assert_eq!(
+            hash_t40_0(DST, sequential_inputs::<40>()),
+            from_const(0x17c85b48)
+        );
+    }
+
+    #[test]
+    fn test_hash_t40_41() {
+        assert_eq!(
+            hash_t40(DST, sequential_inputs::<41>()),
+            [
+                from_const(0x1537e956),
+                from_const(0x674a98b1),
+                from_const(0x33be5663),
+                from_const(0x18f8eb17),
+                from_const(0x58cf90ff),
+                from_const(0x4962d58c),
+                from_const(0x5ce480f1),
+                from_const(0x61114fc5),
+                from_const(0x42decc3c),
+                from_const(0x3e9c82c1),
+                from_const(0x569ff6f6),
+                from_const(0x2258ff5c),
+                from_const(0x281f3807),
+                from_const(0x4663362c),
+                from_const(0x0848bea5),
+                from_const(0x243482cb),
+                from_const(0x4bf6a79c),
+                from_const(0x61034cb1),
+                from_const(0x0faab563),
+                from_const(0x2140798a),
+                from_const(0x6baf9fbd),
+                from_const(0x0de6aa20),
+                from_const(0x215e7e20),
+                from_const(0x59fdb3ee),
+                from_const(0x5e0b523c),
+                from_const(0x66dfad4f),
+                from_const(0x0e321630),
+                from_const(0x0d602fab),
+                from_const(0x0364863d),
+                from_const(0x5262dad9),
+                from_const(0x55fb41a9),
+                from_const(0x24bdc933),
+            ]
+        );
+        assert_eq!(
+            hash_t40_0(DST, sequential_inputs::<41>()),
+            from_const(0x1537e956)
         );
     }
 }

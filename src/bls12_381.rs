@@ -66,11 +66,44 @@ impl poseidon::Config<Scalar, 4> for BlsConfig<4> {
     }
 }
 
+impl poseidon::Config<Scalar, 5> for BlsConfig<5> {
+    fn num_full_rounds_per_side() -> usize {
+        4
+    }
+
+    fn num_partial_rounds() -> usize {
+        56
+    }
+
+    fn alpha() -> usize {
+        5
+    }
+
+    fn get_round_constants() -> &'static [Scalar] {
+        static ROUND_CONSTANTS: LazyLock<[Scalar; 320]> = LazyLock::new(|| {
+            let bytes = include_bytes!("../params/bls12_381/arc_t5.bin");
+            decode_constants::<Scalar, 320>(bytes)
+        });
+        &*ROUND_CONSTANTS
+    }
+
+    fn get_mds_matrix() -> &'static [Scalar] {
+        static MATRIX: LazyLock<[Scalar; 25]> = LazyLock::new(|| {
+            let bytes = include_bytes!("../params/bls12_381/mds_t5.bin");
+            decode_constants::<Scalar, 25>(bytes)
+        });
+        &*MATRIX
+    }
+}
+
 /// Poseidon configuration for BLS12-381 with T=3.
 pub type BlsConfig3 = BlsConfig<3>;
 
 /// Poseidon configuration for BLS12-381 with T=4.
 pub type BlsConfig4 = BlsConfig<4>;
+
+/// Poseidon configuration for BLS12-381 with T=5.
+pub type BlsConfig5 = BlsConfig<5>;
 
 #[cfg(test)]
 mod tests {
@@ -104,6 +137,14 @@ mod tests {
         poseidon::hash0::<BlsConfig4, Scalar, 4, 3, 1>([dst], inputs)
     }
 
+    fn hash_t5(dst: Scalar, inputs: impl IntoIterator<Item = Scalar>) -> [Scalar; 4] {
+        poseidon::hash::<BlsConfig5, Scalar, 5, 4, 1>([dst], inputs)
+    }
+
+    fn hash_t5_0(dst: Scalar, inputs: impl IntoIterator<Item = Scalar>) -> Scalar {
+        poseidon::hash0::<BlsConfig5, Scalar, 5, 4, 1>([dst], inputs)
+    }
+
     #[test]
     fn test_permutation_t3() {
         assert_eq!(
@@ -134,6 +175,26 @@ mod tests {
                 parse_scalar("0x03ed9e6e45c050ecfa18b36cb8fa3ad18247f12897a2cbdc4afd565d2f5d04d0"),
                 parse_scalar("0x3feefc27c9dac582d1ef7a70d4fdc89ca20fddbebc1bf92781d142b71be23c10"),
                 parse_scalar("0x15b696e71b1ae2d964b6cb41b41cec75f7fb9587571945300e9631e139fb0775"),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_permutation_t5() {
+        assert_eq!(
+            poseidon::permutation::<BlsConfig5, Scalar, 5>([
+                from_const(0),
+                from_const(1),
+                from_const(2),
+                from_const(3),
+                from_const(4),
+            ]),
+            [
+                parse_scalar("0x2ebfd520dd8b5f26dfdc74e4ca0861495e119e6b43f7df3369dbb2f190cd5866"),
+                parse_scalar("0x02a954f40547513e0bcc4849454c509ba9aad54255c8774338b8168959796ff2"),
+                parse_scalar("0x66f4c960573081a07c5d6fb97cda9390ea3a6937aec46e90095a0e0b6f755556"),
+                parse_scalar("0x600f0cce47428b9b2c3a6efc53d1f11a689ea2ab15379f8c3165936e8242d408"),
+                parse_scalar("0x6644d0b33fe231476999497145c9aeb29a8d482632a3bd083b4c1f98916ee421"),
             ]
         );
     }
@@ -172,6 +233,34 @@ mod tests {
                 parse_scalar("0x5ad8bcfa9754b5bc043cc74dea65ae15e3fdb0c2295970aaacfc116c802d9895"),
                 parse_scalar("0x03ed9e6e45c050ecfa18b36cb8fa3ad18247f12897a2cbdc4afd565d2f5d04d0"),
                 parse_scalar("0x3feefc27c9dac582d1ef7a70d4fdc89ca20fddbebc1bf92781d142b71be23c10"),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_capacity_dst_t5() {
+        assert_eq!(
+            hash_t5(
+                DST,
+                [from_const(0), from_const(1), from_const(2), from_const(3)]
+            ),
+            [
+                parse_scalar("0x3b716523a29120ddb8d5088c9cfcc39d449793060e0be5791e2d2f2b9718795d"),
+                parse_scalar("0x1a98efc8d7ce7e18cd4124831f4781b40327ce55c6011500c64900d7a4274126"),
+                parse_scalar("0x2cead5dea8ac85b2855b4e6f7f79c5c2caa5a1641ba1203f247338916e606c9b"),
+                parse_scalar("0x71cb63c0d36096725791fad942a7a0d3cc872f80c391497d1d0b52f3ad0851fc"),
+            ]
+        );
+        assert_eq!(
+            hash_t5(
+                from_const(4),
+                [from_const(0), from_const(1), from_const(2), from_const(3)]
+            ),
+            [
+                parse_scalar("0x2ebfd520dd8b5f26dfdc74e4ca0861495e119e6b43f7df3369dbb2f190cd5866"),
+                parse_scalar("0x02a954f40547513e0bcc4849454c509ba9aad54255c8774338b8168959796ff2"),
+                parse_scalar("0x66f4c960573081a07c5d6fb97cda9390ea3a6937aec46e90095a0e0b6f755556"),
+                parse_scalar("0x600f0cce47428b9b2c3a6efc53d1f11a689ea2ab15379f8c3165936e8242d408"),
             ]
         );
     }
@@ -399,6 +488,128 @@ mod tests {
                 ]
             ),
             parse_scalar("0x0c8f1b5e59a0120bda56f3e28b2558f3541f2fc0a421418081b071dd30e89a3f")
+        );
+    }
+
+    #[test]
+    fn test_hash_t5_1() {
+        assert_eq!(
+            hash_t5(DST, [from_const(42)]),
+            [
+                parse_scalar("0x42dcfdc1d68af53318522d640da0a387e10a8ffbcbe3f2de55a96117d850795f"),
+                parse_scalar("0x3be9e60ba0b2fa96be696898d93459a295268aa085bb97ae3eb6157676d92b4a"),
+                parse_scalar("0x5b51625f828868abca690d6ab0d75f4fc589fd1f5a32a134def9aea7425c5053"),
+                parse_scalar("0x6c462095ac943204f054c6962bb90d84a79e28131ac363916c5b35293d76d3dc"),
+            ]
+        );
+        assert_eq!(
+            hash_t5_0(DST, [from_const(42)]),
+            parse_scalar("0x42dcfdc1d68af53318522d640da0a387e10a8ffbcbe3f2de55a96117d850795f")
+        );
+        assert_eq!(
+            hash_t5(from_const(42), [from_const(42)]),
+            [
+                parse_scalar("0x69d8a94f868777431f8718b98b6db145756f49b677483c71304d63c04577750f"),
+                parse_scalar("0x54203bb046d4255d07f9a0f0b13738adff6855d5fdad3b6a620dbe65b1543c34"),
+                parse_scalar("0x440eb93ce45437523f9cd8817125af00967aebad266f88cfb9e283541ba56960"),
+                parse_scalar("0x595fac4fef182210b768a60fe075b164d08bef705bf53c6a4246b12184eb5b57"),
+            ]
+        );
+        assert_eq!(
+            hash_t5_0(from_const(42), [from_const(42)]),
+            parse_scalar("0x69d8a94f868777431f8718b98b6db145756f49b677483c71304d63c04577750f")
+        );
+    }
+
+    #[test]
+    fn test_hash_t5_2() {
+        assert_eq!(
+            hash_t5(DST, [from_const(1), from_const(2)]),
+            [
+                parse_scalar("0x5b5197fb26d2ca179dd5809e946e9d1ac88c463f87d484286288225931bfdee9"),
+                parse_scalar("0x20ea3bec62cc304032ed8b08859e208c192370e4099afdf81f9a5549387630a9"),
+                parse_scalar("0x3f132a44666a30f148941f7b8bf4bc860a39c8450da91e0fd2bc13d32196375b"),
+                parse_scalar("0x066ea2d6fdd20f26d5caed32db3522b10fb05016e4ddabc168a68b335884eba2"),
+            ]
+        );
+        assert_eq!(
+            hash_t5_0(DST, [from_const(1), from_const(2)]),
+            parse_scalar("0x5b5197fb26d2ca179dd5809e946e9d1ac88c463f87d484286288225931bfdee9")
+        );
+    }
+
+    #[test]
+    fn test_hash_t5_3() {
+        assert_eq!(
+            hash_t5(DST, [from_const(3), from_const(4), from_const(5)]),
+            [
+                parse_scalar("0x652f6b97e7cc3be136485a5e2453dc17c7979245caf85fdac9983ff92bf58bf6"),
+                parse_scalar("0x0a6d4544aafdb2d990953beecd60ff0cbfaa25c88aacd744df86042a5c84e3f8"),
+                parse_scalar("0x00f3e82ede77e3274504d530a813007df9a9061eb69167fe1a453ca7632850a8"),
+                parse_scalar("0x332a02b6048150a5bccba16ee160f491cd0bb544bd00cef23ce088bd990c6824"),
+            ]
+        );
+        assert_eq!(
+            hash_t5_0(DST, [from_const(3), from_const(4), from_const(5)]),
+            parse_scalar("0x652f6b97e7cc3be136485a5e2453dc17c7979245caf85fdac9983ff92bf58bf6")
+        );
+    }
+
+    #[test]
+    fn test_hash_t5_4() {
+        assert_eq!(
+            hash_t5(
+                DST,
+                [from_const(6), from_const(7), from_const(8), from_const(9)]
+            ),
+            [
+                parse_scalar("0x05250fae879d22f20125559c211975aa91387887095e5af7d5c2277ac8dfbf3a"),
+                parse_scalar("0x372860e32b5fe8e943789403e006c6100bd85be5766c34412a991a5d53b8bc07"),
+                parse_scalar("0x06c65bf5b3f4409d6a262c9018065d723784c412c6d0d536ba647c8c077392c9"),
+                parse_scalar("0x6381c946360b801972dc7ebb3b75385ace3ad73de2b2aaeda89ecf75e544346a"),
+            ]
+        );
+        assert_eq!(
+            hash_t5_0(
+                DST,
+                [from_const(6), from_const(7), from_const(8), from_const(9)]
+            ),
+            parse_scalar("0x05250fae879d22f20125559c211975aa91387887095e5af7d5c2277ac8dfbf3a")
+        );
+    }
+
+    #[test]
+    fn test_hash_t5_5() {
+        assert_eq!(
+            hash_t5(
+                DST,
+                [
+                    from_const(10),
+                    from_const(11),
+                    from_const(12),
+                    from_const(13),
+                    from_const(14)
+                ]
+            ),
+            [
+                parse_scalar("0x7285769908edaae653cd3dd25cbc1ad213e2f18a6feaeb34b6b8c130758f26f0"),
+                parse_scalar("0x0265c6f5abc84ec8f797e784f4a7dbb43e41d6f354e940c14e95364bc6457def"),
+                parse_scalar("0x29a5b8e9da3029232d48512c25864c772a8e5ae6a21670d7f475023e9b2f3e25"),
+                parse_scalar("0x24f92bce351bc48157e8e2be2071731a91a6193739dc1f935c221ccd595dd558"),
+            ]
+        );
+        assert_eq!(
+            hash_t5_0(
+                DST,
+                [
+                    from_const(10),
+                    from_const(11),
+                    from_const(12),
+                    from_const(13),
+                    from_const(14)
+                ]
+            ),
+            parse_scalar("0x7285769908edaae653cd3dd25cbc1ad213e2f18a6feaeb34b6b8c130758f26f0")
         );
     }
 }
