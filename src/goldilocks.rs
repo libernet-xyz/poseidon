@@ -15,6 +15,10 @@ impl poseidon::Config<Scalar, 12> for GoldilocksConfig<12> {
         22
     }
 
+    fn alpha() -> usize {
+        7
+    }
+
     fn get_round_constants() -> &'static [Scalar] {
         static ROUND_CONSTANTS: LazyLock<[Scalar; 360]> = LazyLock::new(|| {
             let bytes = include_bytes!("../params/goldilocks/arc_t12.bin");
@@ -39,6 +43,10 @@ impl poseidon::Config<Scalar, 16> for GoldilocksConfig<16> {
 
     fn num_partial_rounds() -> usize {
         22
+    }
+
+    fn alpha() -> usize {
+        7
     }
 
     fn get_round_constants() -> &'static [Scalar] {

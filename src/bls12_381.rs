@@ -15,6 +15,10 @@ impl poseidon::Config<Scalar, 3> for BlsConfig<3> {
         56
     }
 
+    fn alpha() -> usize {
+        5
+    }
+
     fn get_round_constants() -> &'static [Scalar] {
         static ROUND_CONSTANTS: LazyLock<[Scalar; 192]> = LazyLock::new(|| {
             let bytes = include_bytes!("../params/bls12_381/arc_t3.bin");
@@ -39,6 +43,10 @@ impl poseidon::Config<Scalar, 4> for BlsConfig<4> {
 
     fn num_partial_rounds() -> usize {
         56
+    }
+
+    fn alpha() -> usize {
+        5
     }
 
     fn get_round_constants() -> &'static [Scalar] {
