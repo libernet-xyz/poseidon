@@ -66,11 +66,44 @@ impl poseidon::Config<Scalar, 32> for KoalaBearConfig<32> {
     }
 }
 
+impl poseidon::Config<Scalar, 40> for KoalaBearConfig<40> {
+    fn num_full_rounds_per_side() -> usize {
+        4
+    }
+
+    fn num_partial_rounds() -> usize {
+        38
+    }
+
+    fn alpha() -> usize {
+        3
+    }
+
+    fn get_round_constants() -> &'static [Scalar] {
+        static ROUND_CONSTANTS: LazyLock<[Scalar; 1840]> = LazyLock::new(|| {
+            let bytes = include_bytes!("../params/koalabear/arc_t40.bin");
+            decode_constants::<Scalar, 1840>(bytes)
+        });
+        &*ROUND_CONSTANTS
+    }
+
+    fn get_mds_matrix() -> &'static [Scalar] {
+        static MATRIX: LazyLock<[Scalar; 1600]> = LazyLock::new(|| {
+            let bytes = include_bytes!("../params/koalabear/mds_t40.bin");
+            decode_constants::<Scalar, 1600>(bytes)
+        });
+        &*MATRIX
+    }
+}
+
 /// Poseidon configuration for KoalaBear with T=24.
 pub type KoalaBearConfig24 = KoalaBearConfig<24>;
 
 /// Poseidon configuration for KoalaBear with T=32.
 pub type KoalaBearConfig32 = KoalaBearConfig<32>;
+
+/// Poseidon configuration for KoalaBear with T=40.
+pub type KoalaBearConfig40 = KoalaBearConfig<40>;
 
 #[cfg(test)]
 mod tests {

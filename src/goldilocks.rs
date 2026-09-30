@@ -66,11 +66,44 @@ impl poseidon::Config<Scalar, 16> for GoldilocksConfig<16> {
     }
 }
 
+impl poseidon::Config<Scalar, 20> for GoldilocksConfig<20> {
+    fn num_full_rounds_per_side() -> usize {
+        4
+    }
+
+    fn num_partial_rounds() -> usize {
+        22
+    }
+
+    fn alpha() -> usize {
+        7
+    }
+
+    fn get_round_constants() -> &'static [Scalar] {
+        static ROUND_CONSTANTS: LazyLock<[Scalar; 600]> = LazyLock::new(|| {
+            let bytes = include_bytes!("../params/goldilocks/arc_t20.bin");
+            decode_constants::<Scalar, 600>(bytes)
+        });
+        &*ROUND_CONSTANTS
+    }
+
+    fn get_mds_matrix() -> &'static [Scalar] {
+        static MATRIX: LazyLock<[Scalar; 400]> = LazyLock::new(|| {
+            let bytes = include_bytes!("../params/goldilocks/mds_t20.bin");
+            decode_constants::<Scalar, 400>(bytes)
+        });
+        &*MATRIX
+    }
+}
+
 /// Poseidon configuration for Goldilocks with T=12.
 pub type GoldilocksConfig12 = GoldilocksConfig<12>;
 
 /// Poseidon configuration for Goldilocks with T=16.
 pub type GoldilocksConfig16 = GoldilocksConfig<16>;
+
+/// Poseidon configuration for Goldilocks with T=20.
+pub type GoldilocksConfig20 = GoldilocksConfig<20>;
 
 #[cfg(test)]
 mod tests {
