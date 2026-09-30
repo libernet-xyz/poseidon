@@ -542,7 +542,7 @@ dependencies = [
 
 [[package]]
 name = "starkom-poseidon"
-version = "5.1.0"
+version = "5.1.1"
 dependencies = [
  "anyhow",
  "primitive-types",
