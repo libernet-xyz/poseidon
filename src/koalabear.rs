@@ -15,6 +15,10 @@ impl poseidon::Config<Scalar, 24> for KoalaBearConfig<24> {
         23
     }
 
+    fn alpha() -> usize {
+        3
+    }
+
     fn get_round_constants() -> &'static [Scalar] {
         static ROUND_CONSTANTS: LazyLock<[Scalar; 744]> = LazyLock::new(|| {
             let bytes = include_bytes!("../params/koalabear/arc_t24.bin");
@@ -39,6 +43,10 @@ impl poseidon::Config<Scalar, 32> for KoalaBearConfig<32> {
 
     fn num_partial_rounds() -> usize {
         31
+    }
+
+    fn alpha() -> usize {
+        3
     }
 
     fn get_round_constants() -> &'static [Scalar] {

@@ -15,22 +15,18 @@ pub trait Config<F: PrimeField, const T: usize> {
         Self::num_full_rounds_per_side() * 2 + Self::num_partial_rounds()
     }
 
-    /// Applies an optimal S-box for this field.
-    ///
-    /// NOTE: the provided implementation is constant-time even though it uses
-    /// [`pow_small_vartime`](`starkom_ff::Field::pow_small_vartime`) because [`PrimeField::ALPHA`]
-    /// is constant, so the vartime algorithm will always run in the same amount of time. The
-    /// constant-time algorithm would be slower because it would perform unnecessary
-    /// multiplications.
-    fn sbox(x: F) -> F {
-        x.pow_small_vartime(F::ALPHA)
-    }
+    /// Returns the S-box exponent.
+    fn alpha() -> usize;
 
     /// Returns the constants of the ARC layer stored as a flat array, row-first.
     fn get_round_constants() -> &'static [F];
 
     /// Returns the constants of the MDS matrix stored as a flat array, row-first.
     fn get_mds_matrix() -> &'static [F];
+}
+
+fn sbox<C: Config<F, T>, F: PrimeField, const T: usize>(x: F) -> F {
+    x.pow_small_vartime(C::alpha())
 }
 
 fn mds<F: PrimeField, const T: usize>(matrix: &[F], state: [F; T]) -> [F; T] {
@@ -58,7 +54,7 @@ pub fn permutation<Cfg: Config<F, T>, F: PrimeField, const T: usize>(mut state: 
             state[i] += c[r * T + i];
         }
         for i in 0..T {
-            state[i] = Cfg::sbox(state[i]);
+            state[i] = sbox::<Cfg, F, T>(state[i]);
         }
         state = mds::<F, T>(m, state);
     }
@@ -67,7 +63,7 @@ pub fn permutation<Cfg: Config<F, T>, F: PrimeField, const T: usize>(mut state: 
         for i in 0..T {
             state[i] += c[r * T + i];
         }
-        state[0] = Cfg::sbox(state[0]);
+        state[0] = sbox::<Cfg, F, T>(state[0]);
         state = mds::<F, T>(m, state);
     }
 
@@ -76,7 +72,7 @@ pub fn permutation<Cfg: Config<F, T>, F: PrimeField, const T: usize>(mut state: 
             state[i] += c[r * T + i];
         }
         for i in 0..T {
-            state[i] = Cfg::sbox(state[i]);
+            state[i] = sbox::<Cfg, F, T>(state[i]);
         }
         state = mds::<F, T>(m, state);
     }

@@ -15,6 +15,10 @@ impl poseidon::Config<Scalar, 3> for SchraderbrauConfig<3> {
         83
     }
 
+    fn alpha() -> usize {
+        3
+    }
+
     fn get_round_constants() -> &'static [Scalar] {
         static ROUND_CONSTANTS: LazyLock<[Scalar; 273]> = LazyLock::new(|| {
             let bytes = include_bytes!("../params/schraderbrau/arc_t3.bin");
@@ -39,6 +43,10 @@ impl poseidon::Config<Scalar, 4> for SchraderbrauConfig<4> {
 
     fn num_partial_rounds() -> usize {
         84
+    }
+
+    fn alpha() -> usize {
+        3
     }
 
     fn get_round_constants() -> &'static [Scalar] {
