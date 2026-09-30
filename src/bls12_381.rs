@@ -66,11 +66,44 @@ impl poseidon::Config<Scalar, 4> for BlsConfig<4> {
     }
 }
 
+impl poseidon::Config<Scalar, 5> for BlsConfig<5> {
+    fn num_full_rounds_per_side() -> usize {
+        4
+    }
+
+    fn num_partial_rounds() -> usize {
+        56
+    }
+
+    fn alpha() -> usize {
+        5
+    }
+
+    fn get_round_constants() -> &'static [Scalar] {
+        static ROUND_CONSTANTS: LazyLock<[Scalar; 320]> = LazyLock::new(|| {
+            let bytes = include_bytes!("../params/bls12_381/arc_t5.bin");
+            decode_constants::<Scalar, 320>(bytes)
+        });
+        &*ROUND_CONSTANTS
+    }
+
+    fn get_mds_matrix() -> &'static [Scalar] {
+        static MATRIX: LazyLock<[Scalar; 25]> = LazyLock::new(|| {
+            let bytes = include_bytes!("../params/bls12_381/mds_t5.bin");
+            decode_constants::<Scalar, 25>(bytes)
+        });
+        &*MATRIX
+    }
+}
+
 /// Poseidon configuration for BLS12-381 with T=3.
 pub type BlsConfig3 = BlsConfig<3>;
 
 /// Poseidon configuration for BLS12-381 with T=4.
 pub type BlsConfig4 = BlsConfig<4>;
+
+/// Poseidon configuration for BLS12-381 with T=5.
+pub type BlsConfig5 = BlsConfig<5>;
 
 #[cfg(test)]
 mod tests {
@@ -104,6 +137,10 @@ mod tests {
         poseidon::hash0::<BlsConfig4, Scalar, 4, 3, 1>([dst], inputs)
     }
 
+    fn hash_t5(dst: Scalar, inputs: impl IntoIterator<Item = Scalar>) -> [Scalar; 4] {
+        poseidon::hash::<BlsConfig5, Scalar, 5, 4, 1>([dst], inputs)
+    }
+
     #[test]
     fn test_permutation_t3() {
         assert_eq!(
@@ -134,6 +171,26 @@ mod tests {
                 parse_scalar("0x03ed9e6e45c050ecfa18b36cb8fa3ad18247f12897a2cbdc4afd565d2f5d04d0"),
                 parse_scalar("0x3feefc27c9dac582d1ef7a70d4fdc89ca20fddbebc1bf92781d142b71be23c10"),
                 parse_scalar("0x15b696e71b1ae2d964b6cb41b41cec75f7fb9587571945300e9631e139fb0775"),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_permutation_t5() {
+        assert_eq!(
+            poseidon::permutation::<BlsConfig5, Scalar, 5>([
+                from_const(0),
+                from_const(1),
+                from_const(2),
+                from_const(3),
+                from_const(4),
+            ]),
+            [
+                parse_scalar("0x2ebfd520dd8b5f26dfdc74e4ca0861495e119e6b43f7df3369dbb2f190cd5866"),
+                parse_scalar("0x02a954f40547513e0bcc4849454c509ba9aad54255c8774338b8168959796ff2"),
+                parse_scalar("0x66f4c960573081a07c5d6fb97cda9390ea3a6937aec46e90095a0e0b6f755556"),
+                parse_scalar("0x600f0cce47428b9b2c3a6efc53d1f11a689ea2ab15379f8c3165936e8242d408"),
+                parse_scalar("0x6644d0b33fe231476999497145c9aeb29a8d482632a3bd083b4c1f98916ee421"),
             ]
         );
     }
@@ -172,6 +229,34 @@ mod tests {
                 parse_scalar("0x5ad8bcfa9754b5bc043cc74dea65ae15e3fdb0c2295970aaacfc116c802d9895"),
                 parse_scalar("0x03ed9e6e45c050ecfa18b36cb8fa3ad18247f12897a2cbdc4afd565d2f5d04d0"),
                 parse_scalar("0x3feefc27c9dac582d1ef7a70d4fdc89ca20fddbebc1bf92781d142b71be23c10"),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_capacity_dst_t5() {
+        assert_eq!(
+            hash_t5(
+                DST,
+                [from_const(0), from_const(1), from_const(2), from_const(3)]
+            ),
+            [
+                parse_scalar("0x3b716523a29120ddb8d5088c9cfcc39d449793060e0be5791e2d2f2b9718795d"),
+                parse_scalar("0x1a98efc8d7ce7e18cd4124831f4781b40327ce55c6011500c64900d7a4274126"),
+                parse_scalar("0x2cead5dea8ac85b2855b4e6f7f79c5c2caa5a1641ba1203f247338916e606c9b"),
+                parse_scalar("0x71cb63c0d36096725791fad942a7a0d3cc872f80c391497d1d0b52f3ad0851fc"),
+            ]
+        );
+        assert_eq!(
+            hash_t5(
+                from_const(4),
+                [from_const(0), from_const(1), from_const(2), from_const(3)]
+            ),
+            [
+                parse_scalar("0x2ebfd520dd8b5f26dfdc74e4ca0861495e119e6b43f7df3369dbb2f190cd5866"),
+                parse_scalar("0x02a954f40547513e0bcc4849454c509ba9aad54255c8774338b8168959796ff2"),
+                parse_scalar("0x66f4c960573081a07c5d6fb97cda9390ea3a6937aec46e90095a0e0b6f755556"),
+                parse_scalar("0x600f0cce47428b9b2c3a6efc53d1f11a689ea2ab15379f8c3165936e8242d408"),
             ]
         );
     }
